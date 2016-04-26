@@ -2,15 +2,15 @@
 
 [![Build Status](https://secure.travis-ci.org/sonots/embulk-filter-timestamp_format.png?branch=master)](http://travis-ci.org/sonots/embulk-filter-timestamp_format)
 
-A filter plugin for Embulk to change timesatmp format
+A filter plugin for Embulk to change timestamp format
 
 ## Configuration
 
 - **columns**: columns to retain (array of hash)
-  - **name**: name of column, must be a string column (required)
-  - **from_format**: specify the format of the input timestamp (array of strings, default is default_from_format)
+  - **name**: name of column (required)
+  - **from_format**: specify the format of the input timestamp (array of strings, default is default_from_timestamp_format)
   - **from_timezone**: specify the timezone of the input timestamp (string, default is default_from_timezone)
-  - **to_format**: specify the format of the output timestamp (string, default is default_to_format)
+  - **to_format**: specify the format of the output timestamp (string, default is default_to_timestamp_format)
   - **to_timezone**: specify the timezone of the output timestamp (string, default is default_to_timezone)
 - **default_from_timestamp_format**: default timestamp format for the input timestamp columns (array of strings, default is `["%Y-%m-%d %H:%M:%S.%N %z"]`)
 - **default_from_timezone**: default timezone for the input timestamp columns (string, default is `UTC`)
@@ -42,7 +42,7 @@ filters:
     default_to_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
       - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
-      - {name: record.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+      - {name: $.record.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
   type: stdout
 ```
 
@@ -55,7 +55,7 @@ Output will be as:
 
 ## ToDo
 
-* Currently, input must be a String column and output will be a String column. But, support Timestamp column (input / output)
+* Support Timestamp columns (currently, only String columns are supported)
 * Write test
 
 ## Development
