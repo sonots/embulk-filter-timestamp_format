@@ -1,3 +1,9 @@
+# 0.1.3 (2016-04-26)
+
+Fixes:
+
+* Fix to see all from_format
+
 # 0.1.2 (2016-04-26)
 
 Changes:
