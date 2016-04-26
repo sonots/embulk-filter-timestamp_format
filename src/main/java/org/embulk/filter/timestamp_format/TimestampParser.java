@@ -86,6 +86,7 @@ public class TimestampParser
             helper = h;
             try {
                 localUsec = helper.strptimeUsec(text);
+                break;
             }
             catch (TimestampParseException ex) {
                 exception = ex;

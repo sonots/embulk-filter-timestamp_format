@@ -16,6 +16,7 @@ A filter plugin for Embulk to change timesatmp format
 - **default_from_timezone**: default timezone for the input timestamp columns (string, default is `UTC`)
 - **default_to_format**: default timestamp format for the output timestamp columns (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
 - **default_to_timezone**: default timezone for the output timestamp olumns (string, default is `UTC`)
+* **stop_on_invalid_record**: stop bulk load transaction if a invalid record is found (boolean, default is `false)
 
 ## Example
 
