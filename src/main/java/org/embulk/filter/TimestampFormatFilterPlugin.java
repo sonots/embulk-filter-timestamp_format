@@ -1,18 +1,17 @@
 package org.embulk.filter;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 
 import org.embulk.config.Config;
-import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
+import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.Task;
 import org.embulk.config.TaskSource;
 
-import org.embulk.filter.timestamp_format.TimestampParser;
 import org.embulk.filter.timestamp_format.TimestampFormatter;
+import org.embulk.filter.timestamp_format.TimestampParser;
 
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
@@ -23,21 +22,20 @@ import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
-import org.embulk.spi.json.JsonParser;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.time.TimestampParseException;
 
-import org.jruby.embed.ScriptingContainer;
 import org.joda.time.DateTimeZone;
+import org.jruby.embed.ScriptingContainer;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
 import org.msgpack.value.ValueFactory;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -122,6 +120,68 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         }
 
         return new PageOutput() {
+            public Value formatTimestampStringRecursively(PluginTask task, String name, Value value)
+                    throws TimestampParseException
+            {
+                if (value.isArrayValue()) {
+                    ArrayValue arrayValue = value.asArrayValue();
+                    int size = arrayValue.size();
+                    Value[] newValue = new Value[size];
+                    for (int i = 0; i < size; i++) {
+                        String k = new StringBuilder(name).append("[").append(Integer.toString(i)).append("]").toString();
+                        Value v = arrayValue.get(i);
+                        newValue[i] = formatTimestampStringRecursively(task, k, v);
+                    }
+                    return ValueFactory.newArray(newValue, true);
+                }
+                else if (value.isMapValue()) {
+                    MapValue mapValue = value.asMapValue();
+                    int size = mapValue.size() * 2;
+                    Value[] newValue = new Value[size];
+                    int i = 0;
+                    for (Map.Entry<Value, Value> entry : mapValue.entrySet()) {
+                        Value k = entry.getKey();
+                        Value v = entry.getValue();
+                        String newName = new StringBuilder(name).append(".").append(k.asStringValue().asString()).toString();
+                        Value r = formatTimestampStringRecursively(task, newName, v);
+                        newValue[i++] = k;
+                        newValue[i++] = r;
+                    }
+                    return ValueFactory.newMap(newValue, true);
+                }
+                else if (value.isStringValue()) {
+                    String stringValue = value.asStringValue().asString();
+                    String newValue = formatTimestampString(task, name, stringValue);
+                    return (Objects.equals(newValue, stringValue)) ? value : ValueFactory.newString(newValue);
+                }
+                else {
+                    return value;
+                }
+            }
+
+            public String formatTimestampString(PluginTask task, String name, String value)
+                    throws TimestampParseException
+            {
+                TimestampParser parser = timestampParserMap.get(name);
+                TimestampFormatter formatter = timestampFormatterMap.get(name);
+                if (formatter == null || parser == null) {
+                    return value;
+                }
+                try {
+                    Timestamp timestamp = parser.parse(value);
+                    return formatter.format(timestamp);
+                }
+                catch (TimestampParseException ex) {
+                    if (task.getStopOnInvalidRecord()) {
+                        throw Throwables.propagate(ex);
+                    }
+                    else {
+                        logger.warn("invalid value \"{}\":\"{}\"", name, value);
+                        return value;
+                    }
+                }
+            }
+
             private PageReader pageReader = new PageReader(inputSchema);
             private PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
             private ColumnVisitorImpl visitor = new ColumnVisitorImpl(pageBuilder);
@@ -149,72 +209,12 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 }
             }
 
-            public Value formatTimestampStringRecursively(PluginTask task, String name, Value value)
-                    throws TimestampParseException
-            {
-                if (value.isArrayValue()) {
-                    ArrayValue arrayValue = value.asArrayValue();
-                    int size = arrayValue.size();
-                    Value newValue[] = new Value[size];
-                    for (int i = 0; i < size; i++) {
-                        String k = new StringBuilder(name).append("[").append(Integer.toString(i)).append("]").toString();
-                        Value v = arrayValue.get(i);
-                        newValue[i] = formatTimestampStringRecursively(task, k, v);
-                    }
-                    return ValueFactory.newArray(newValue, true);
-                }
-                else if (value.isMapValue()) {
-                    MapValue mapValue = value.asMapValue();
-                    int size = mapValue.size() * 2;
-                    Value newValue[] = new Value[size];
-                    int i = 0;
-                    for (Map.Entry<Value, Value> entry : mapValue.entrySet()) {
-                        Value k = entry.getKey();
-                        Value v = entry.getValue();
-                        String newName = new StringBuilder(name).append(".").append(k.asStringValue().asString()).toString();
-                        Value r = formatTimestampStringRecursively(task, newName, v);
-                        newValue[i++] = k;
-                        newValue[i++] = r;
-                    }
-                    return ValueFactory.newMap(newValue, true);
-                }
-                else if (value.isStringValue()) {
-                    String stringValue = value.asStringValue().asString() ;
-                    String newValue = formatTimestampString(task, name, stringValue);
-                    return (Objects.equals(newValue, stringValue)) ? value : ValueFactory.newString(newValue);
-                }
-                else {
-                    return value;
-                }
-            }
-
-            public String formatTimestampString(PluginTask task, String name, String value)
-                    throws TimestampParseException
-            {
-                TimestampParser parser = timestampParserMap.get(name);
-                TimestampFormatter formatter = timestampFormatterMap.get(name);
-                if (formatter == null || parser == null) {
-                    return value;
-                }
-                try {
-                    Timestamp timestamp = parser.parse(value);
-                    return formatter.format(timestamp);
-                }
-                catch (TimestampParseException ex) {
-                    if (task.getStopOnInvalidRecord()) {
-                        throw Throwables.propagate(ex);
-                    } else {
-                        logger.warn("invalid value \"{}\":\"{}\"", name, value);
-                        return value;
-                    }
-                }
-            }
-
             class ColumnVisitorImpl implements ColumnVisitor
             {
                 private final PageBuilder pageBuilder;
 
-                ColumnVisitorImpl(PageBuilder pageBuilder) {
+                ColumnVisitorImpl(PageBuilder pageBuilder)
+                {
                     this.pageBuilder = pageBuilder;
                 }
 
@@ -223,7 +223,8 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 {
                     if (pageReader.isNull(column)) {
                         pageBuilder.setNull(column);
-                    } else {
+                    }
+                    else {
                         pageBuilder.setBoolean(column, pageReader.getBoolean(column));
                     }
                 }
@@ -233,7 +234,8 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 {
                     if (pageReader.isNull(column)) {
                         pageBuilder.setNull(column);
-                    } else {
+                    }
+                    else {
                         pageBuilder.setLong(column, pageReader.getLong(column));
                     }
                 }
@@ -243,7 +245,8 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 {
                     if (pageReader.isNull(column)) {
                         pageBuilder.setNull(column);
-                    } else {
+                    }
+                    else {
                         pageBuilder.setDouble(column, pageReader.getDouble(column));
                     }
                 }
@@ -279,7 +282,8 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 {
                     if (pageReader.isNull(column)) {
                         pageBuilder.setNull(column);
-                    } else {
+                    }
+                    else {
                         pageBuilder.setTimestamp(column, pageReader.getTimestamp(column));
                     }
                 }

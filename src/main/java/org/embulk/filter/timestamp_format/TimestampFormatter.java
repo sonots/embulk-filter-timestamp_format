@@ -1,18 +1,21 @@
 package org.embulk.filter.timestamp_format;
 
-import java.util.Locale;
-import org.jruby.embed.ScriptingContainer;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import com.google.common.base.Optional;
-import org.jruby.embed.ScriptingContainer;
-import org.jruby.util.RubyDateFormat;
+
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
-import org.embulk.spi.util.LineEncoder;
-import org.embulk.spi.time.Timestamp;
 
 import org.embulk.filter.TimestampFormatFilterPlugin.PluginTask;
+
+import org.embulk.spi.time.Timestamp;
+import org.embulk.spi.util.LineEncoder;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.jruby.embed.ScriptingContainer;
+import org.jruby.util.RubyDateFormat;
+
+import java.util.Locale;
 
 public class TimestampFormatter
 {
@@ -72,7 +75,7 @@ public class TimestampFormatter
     public String format(Timestamp value)
     {
         // TODO optimize by using reused StringBuilder
-        toDateFormat.setDateTime(new DateTime(value.getEpochSecond()*1000, toTimeZone));
+        toDateFormat.setDateTime(new DateTime(value.getEpochSecond() * 1000, toTimeZone));
         toDateFormat.setNSec(value.getNano());
         return toDateFormat.format(null);
     }

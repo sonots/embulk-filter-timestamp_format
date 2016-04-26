@@ -1,19 +1,24 @@
 package org.embulk.filter.timestamp_format;
 
-import org.jruby.embed.ScriptingContainer;
-import org.joda.time.DateTimeZone;
 import com.google.common.base.Optional;
+
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
-import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
-import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampParseException;
-import org.embulk.spi.time.JRubyTimeParserHelper;
-import org.embulk.spi.time.JRubyTimeParserHelperFactory;
 
 import org.embulk.filter.TimestampFormatFilterPlugin.PluginTask;
-import java.util.List;
+
+import org.embulk.spi.time.JRubyTimeParserHelper;
+import org.embulk.spi.time.JRubyTimeParserHelperFactory;
+import org.embulk.spi.time.Timestamp;
+import org.embulk.spi.time.TimestampParseException;
+
+import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
+
+import org.joda.time.DateTimeZone;
+import org.jruby.embed.ScriptingContainer;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class TimestampParser
 {
@@ -81,7 +86,8 @@ public class TimestampParser
             helper = h;
             try {
                 localUsec = helper.strptimeUsec(text);
-            } catch (TimestampParseException ex) {
+            }
+            catch (TimestampParseException ex) {
                 exception = ex;
             }
         }
@@ -101,7 +107,7 @@ public class TimestampParser
 
         long localSec = localUsec / 1000000;
         long usec = localUsec % 1000000;
-        long sec = timeZone.convertLocalToUTC(localSec*1000, false) / 1000;
+        long sec = timeZone.convertLocalToUTC(localSec * 1000, false) / 1000;
 
         return Timestamp.ofEpochSecond(sec, usec * 1000);
     }
