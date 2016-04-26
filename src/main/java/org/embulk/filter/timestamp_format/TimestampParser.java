@@ -5,7 +5,7 @@ import com.google.common.base.Optional;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 
-import org.embulk.filter.TimestampFormatFilterPlugin.PluginTask;
+import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
 
 import org.embulk.spi.time.JRubyTimeParserHelper;
 import org.embulk.spi.time.JRubyTimeParserHelperFactory;

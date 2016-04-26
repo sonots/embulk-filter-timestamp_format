@@ -1,4 +1,4 @@
-package org.embulk.filter;
+package org.embulk.filter.timestamp_format;
 
 import com.google.common.base.Throwables;
 
@@ -9,9 +9,6 @@ import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.Task;
 import org.embulk.config.TaskSource;
-
-import org.embulk.filter.timestamp_format.TimestampFormatter;
-import org.embulk.filter.timestamp_format.TimestampParser;
 
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
