@@ -82,6 +82,13 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
             throw new ConfigException("\"columns\" must be specified.");
         }
 
+        for (ColumnConfig columnConfig : columns) {
+            String name = columnConfig.getName();
+            if (!name.startsWith("$.")) {
+                inputSchema.lookupColumn(name); // throw Column 'name' is not found
+            }
+        }
+
         control.run(task.dump(), inputSchema);
     }
 
