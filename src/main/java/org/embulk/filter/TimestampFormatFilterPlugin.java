@@ -77,11 +77,6 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         PluginTask task = config.loadConfig(PluginTask.class);
 
         List<ColumnConfig> columns = task.getColumns();
-
-        if (columns.size() == 0) {
-            throw new ConfigException("\"columns\" must be specified.");
-        }
-
         for (ColumnConfig columnConfig : columns) {
             String name = columnConfig.getName();
             if (!name.startsWith("$.")) {
