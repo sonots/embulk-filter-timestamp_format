@@ -1,5 +1,5 @@
 package org.embulk.filter;
 
-public class TestColumnFilterPlugin
+public class TestTimestampFormatFilterPlugin
 {
 }
