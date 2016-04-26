@@ -20,6 +20,7 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +34,7 @@ public class ColumnVisitorImpl
     private final PageBuilder pageBuilder;
     private final HashMap<String, TimestampParser> timestampParserMap = new HashMap<String, TimestampParser>();
     private final HashMap<String, TimestampFormatter> timestampFormatterMap = new HashMap<String, TimestampFormatter>();
+    private final HashSet<String> shouldVisitRecursivelySet = new HashSet<String>();
 
     ColumnVisitorImpl(PluginTask task, PageReader pageReader, PageBuilder pageBuilder)
     {
@@ -40,15 +42,17 @@ public class ColumnVisitorImpl
         this.pageReader  = pageReader;
         this.pageBuilder = pageBuilder;
 
+        buildTimestampParserMap();
+        buildTimestampFormatterMap();
+        buildShouldVisitRecursivelySet();;
+    }
+
+    private void buildTimestampParserMap()
+    {
         // columnName or jsonPath => TimestampParser
         for (ColumnConfig columnConfig : task.getColumns()) {
             TimestampParser parser = getTimestampParser(columnConfig, task);
             this.timestampParserMap.put(columnConfig.getName(), parser); // NOTE: value would be null
-        }
-        // columnName or jsonPath => TimestampFormatter
-        for (ColumnConfig columnConfig : task.getColumns()) {
-            TimestampFormatter parser = getTimestampFormatter(columnConfig, task);
-            this.timestampFormatterMap.put(columnConfig.getName(), parser); // NOTE: value would be null
         }
     }
 
@@ -59,6 +63,15 @@ public class ColumnVisitorImpl
         return new TimestampParser(task.getJRuby(), formatList, timezone);
     }
 
+    private void buildTimestampFormatterMap()
+    {
+        // columnName or jsonPath => TimestampFormatter
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            TimestampFormatter parser = getTimestampFormatter(columnConfig, task);
+            this.timestampFormatterMap.put(columnConfig.getName(), parser); // NOTE: value would be null
+        }
+    }
+
     private TimestampFormatter getTimestampFormatter(ColumnConfig columnConfig, PluginTask task)
     {
         String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
@@ -66,15 +79,52 @@ public class ColumnVisitorImpl
         return new TimestampFormatter(task.getJRuby(), format, timezone);
     }
 
-    private Value formatTimestampStringRecursively(PluginTask task, String name, Value value)
+
+    private void buildShouldVisitRecursivelySet()
+    {
+        // json partial path => Boolean to avoid unnecessary type: json visit
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            String name = columnConfig.getName();
+            if (!name.startsWith("$.")) {
+                continue;
+            }
+            String[] parts = name.split("\\.");
+            StringBuilder partialPath = new StringBuilder("$");
+            for (int i = 1; i < parts.length; i++) {
+                if (parts[i].contains("[")) {
+                    String[] arrayParts = parts[i].split("\\[");
+                    partialPath.append(".").append(arrayParts[0]);
+                    this.shouldVisitRecursivelySet.add(partialPath.toString());
+                    for (int j = 1; j < arrayParts.length; j++) {
+                        partialPath.append("[").append(arrayParts[j]);
+                        this.shouldVisitRecursivelySet.add(partialPath.toString());
+                    }
+                }
+                else {
+                    partialPath.append(".").append(parts[i]);
+                    this.shouldVisitRecursivelySet.add(partialPath.toString());
+                }
+            }
+        }
+    }
+
+    private boolean shouldVisitRecursively(String name)
+    {
+        return shouldVisitRecursivelySet.contains(name);
+    }
+
+    private Value formatTimestampStringRecursively(PluginTask task, String path, Value value)
             throws TimestampParseException
     {
+        if (!shouldVisitRecursively(path)) {
+            return value;
+        }
         if (value.isArrayValue()) {
             ArrayValue arrayValue = value.asArrayValue();
             int size = arrayValue.size();
             Value[] newValue = new Value[size];
             for (int i = 0; i < size; i++) {
-                String k = new StringBuilder(name).append("[").append(Integer.toString(i)).append("]").toString();
+                String k = new StringBuilder(path).append("[").append(Integer.toString(i)).append("]").toString();
                 Value v = arrayValue.get(i);
                 newValue[i] = formatTimestampStringRecursively(task, k, v);
             }
@@ -88,8 +138,8 @@ public class ColumnVisitorImpl
             for (Map.Entry<Value, Value> entry : mapValue.entrySet()) {
                 Value k = entry.getKey();
                 Value v = entry.getValue();
-                String newName = new StringBuilder(name).append(".").append(k.asStringValue().asString()).toString();
-                Value r = formatTimestampStringRecursively(task, newName, v);
+                String newPath = new StringBuilder(path).append(".").append(k.asStringValue().asString()).toString();
+                Value r = formatTimestampStringRecursively(task, newPath, v);
                 newValue[i++] = k;
                 newValue[i++] = r;
             }
@@ -97,7 +147,7 @@ public class ColumnVisitorImpl
         }
         else if (value.isStringValue()) {
             String stringValue = value.asStringValue().asString();
-            String newValue = formatTimestampString(task, name, stringValue);
+            String newValue = formatTimestampString(task, path, stringValue);
             return (Objects.equals(newValue, stringValue)) ? value : ValueFactory.newString(newValue);
         }
         else {
@@ -181,9 +231,9 @@ public class ColumnVisitorImpl
             pageBuilder.setNull(column);
         }
         else {
-            String name = new StringBuilder("$.").append(column.getName()).toString();
+            String path = new StringBuilder("$.").append(column.getName()).toString();
             Value value = pageReader.getJson(column);
-            Value formatted = formatTimestampStringRecursively(task, name, value);
+            Value formatted = formatTimestampStringRecursively(task, path, value);
             pageBuilder.setJson(column, formatted);
         }
     }
