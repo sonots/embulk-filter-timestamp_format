@@ -1,3 +1,9 @@
+# 0.1.4 (2016-04-26)
+
+Enhancements:
+
+* Performance Improvement by avoiding unnecessary visiting
+
 # 0.1.3 (2016-04-26)
 
 Fixes:
