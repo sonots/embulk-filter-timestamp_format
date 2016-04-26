@@ -74,10 +74,15 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         PluginTask task = config.loadConfig(PluginTask.class);
 
         List<ColumnConfig> columns = task.getColumns();
+        // throw if column does not exist
         for (ColumnConfig columnConfig : columns) {
             String name = columnConfig.getName();
-            if (!name.startsWith("$.")) {
-                inputSchema.lookupColumn(name); // throw Column 'name' is not found
+            if (name.startsWith("$.")) {
+                String firstName = name.split("\\.", 3)[1];
+                inputSchema.lookupColumn(firstName);
+            }
+            else {
+                inputSchema.lookupColumn(name);
             }
         }
 
@@ -105,13 +110,13 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
     {
         final PluginTask task = taskSource.loadTask(PluginTask.class);
 
-        // columnName => TimestampParser
+        // columnName or jsonPath => TimestampParser
         final HashMap<String, TimestampParser> timestampParserMap = new HashMap<String, TimestampParser>();
         for (ColumnConfig columnConfig : task.getColumns()) {
             TimestampParser parser = getTimestampParser(columnConfig, task);
             timestampParserMap.put(columnConfig.getName(), parser); // NOTE: value would be null
         }
-        // columnName => TimestampFormatter
+        // columnName or jsonPath => TimestampFormatter
         final HashMap<String, TimestampFormatter> timestampFormatterMap = new HashMap<String, TimestampFormatter>();
         for (ColumnConfig columnConfig : task.getColumns()) {
             TimestampFormatter parser = getTimestampFormatter(columnConfig, task);

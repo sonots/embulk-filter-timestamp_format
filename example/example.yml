@@ -6,6 +6,7 @@ in:
     columns:
     - {name: timestamp, type: string}
     - {name: record, type: json}
+    - {name: ignore_record, type: json}
 filters:
   - type: timestamp_format
     default_to_timezone: "Asia/Tokyo"

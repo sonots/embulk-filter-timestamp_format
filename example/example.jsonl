@@ -1,2 +1,2 @@
-{"timestamp":"2015-07-12 15:00:00 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00 UTC"}]}}}
-{"timestamp":"2015-07-12 15:00:00.1 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00.1 UTC"}]}}}
+{"timestamp":"2015-07-12 15:00:00 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00 UTC"}]},"ignore_record":{"timestamp":"2015-07-12 15:00:00 UTC"}}
+{"timestamp":"2015-07-12 15:00:00.1 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00.1 UTC"}]},"ignore_record":{"timestamp":"2015-07-12 15:00:00.1 UTC"}}
