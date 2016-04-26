@@ -29,11 +29,17 @@ import org.embulk.spi.time.TimestampParseException;
 
 import org.jruby.embed.ScriptingContainer;
 import org.joda.time.DateTimeZone;
+import org.msgpack.value.ArrayValue;
+import org.msgpack.value.MapValue;
+import org.msgpack.value.Value;
+import org.msgpack.value.ValueFactory;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
 
 public class TimestampFormatFilterPlugin implements FilterPlugin
 {
@@ -81,29 +87,19 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         control.run(task.dump(), inputSchema);
     }
 
-    private TimestampParser getTimestampParser(String name, PluginTask task)
+    private TimestampParser getTimestampParser(ColumnConfig columnConfig, PluginTask task)
     {
-        for (ColumnConfig columnConfig : task.getColumns()) {
-            if (columnConfig.getName().equals(name)) {
-                List<TimestampParser> timestampParser = new ArrayList<TimestampParser>();
-                DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
-                List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
-                return new TimestampParser(task.getJRuby(), formatList, timezone);
-            }
-        }
-        return null;
+        List<TimestampParser> timestampParser = new ArrayList<TimestampParser>();
+        DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
+        List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
+        return new TimestampParser(task.getJRuby(), formatList, timezone);
     }
 
-    private TimestampFormatter getTimestampFormatter(String name, PluginTask task)
+    private TimestampFormatter getTimestampFormatter(ColumnConfig columnConfig, PluginTask task)
     {
-        for (ColumnConfig columnConfig : task.getColumns()) {
-            if (columnConfig.getName().equals(name)) {
-                String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
-                DateTimeZone timezone = columnConfig.getToTimeZone().or(task.getDefaultToTimeZone());
-                return new TimestampFormatter(task.getJRuby(), format, timezone);
-            }
-        }
-        return null;
+        String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
+        DateTimeZone timezone = columnConfig.getToTimeZone().or(task.getDefaultToTimeZone());
+        return new TimestampFormatter(task.getJRuby(), format, timezone);
     }
 
     @Override
@@ -112,19 +108,17 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
     {
         final PluginTask task = taskSource.loadTask(PluginTask.class);
 
-        // columnName => TimesatmpParser
+        // columnName => TimestampParser
         final HashMap<String, TimestampParser> timestampParserMap = new HashMap<String, TimestampParser>();
-        for (Column outputColumn : outputSchema.getColumns()) {
-            String name = outputColumn.getName();
-            TimestampParser parser = getTimestampParser(name, task);
-            timestampParserMap.put(name, parser); // NOTE: value would be null
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            TimestampParser parser = getTimestampParser(columnConfig, task);
+            timestampParserMap.put(columnConfig.getName(), parser); // NOTE: value would be null
         }
-        // columnName => TimesatmpFormatter
+        // columnName => TimestampFormatter
         final HashMap<String, TimestampFormatter> timestampFormatterMap = new HashMap<String, TimestampFormatter>();
-        for (Column outputColumn : outputSchema.getColumns()) {
-            String name = outputColumn.getName();
-            TimestampFormatter parser = getTimestampFormatter(name, task);
-            timestampFormatterMap.put(name, parser); // NOTE: value would be null
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            TimestampFormatter parser = getTimestampFormatter(columnConfig, task);
+            timestampFormatterMap.put(columnConfig.getName(), parser); // NOTE: value would be null
         }
 
         return new PageOutput() {
@@ -152,6 +146,67 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                 while (pageReader.nextRecord()) {
                     outputSchema.visitColumns(visitor);
                     pageBuilder.addRecord();
+                }
+            }
+
+            public Value formatTimestampStringRecursively(PluginTask task, String name, Value value)
+                    throws TimestampParseException
+            {
+                if (value.isArrayValue()) {
+                    ArrayValue arrayValue = value.asArrayValue();
+                    int size = arrayValue.size();
+                    Value newValue[] = new Value[size];
+                    for (int i = 0; i < size; i++) {
+                        String k = new StringBuilder(name).append("[").append(Integer.toString(i)).append("]").toString();
+                        Value v = arrayValue.get(i);
+                        newValue[i] = formatTimestampStringRecursively(task, k, v);
+                    }
+                    return ValueFactory.newArray(newValue, true);
+                }
+                else if (value.isMapValue()) {
+                    MapValue mapValue = value.asMapValue();
+                    int size = mapValue.size() * 2;
+                    Value newValue[] = new Value[size];
+                    int i = 0;
+                    for (Map.Entry<Value, Value> entry : mapValue.entrySet()) {
+                        Value k = entry.getKey();
+                        Value v = entry.getValue();
+                        String newName = new StringBuilder(name).append(".").append(k.asStringValue().asString()).toString();
+                        Value r = formatTimestampStringRecursively(task, newName, v);
+                        newValue[i++] = k;
+                        newValue[i++] = r;
+                    }
+                    return ValueFactory.newMap(newValue, true);
+                }
+                else if (value.isStringValue()) {
+                    String stringValue = value.asStringValue().asString() ;
+                    String newValue = formatTimestampString(task, name, stringValue);
+                    return (Objects.equals(newValue, stringValue)) ? value : ValueFactory.newString(newValue);
+                }
+                else {
+                    return value;
+                }
+            }
+
+            public String formatTimestampString(PluginTask task, String name, String value)
+                    throws TimestampParseException
+            {
+                TimestampParser parser = timestampParserMap.get(name);
+                TimestampFormatter formatter = timestampFormatterMap.get(name);
+                if (formatter == null || parser == null) {
+                    return value;
+                }
+                try {
+                    Timestamp timestamp = parser.parse(value);
+                    return formatter.format(timestamp);
+                }
+                catch (TimestampParseException ex) {
+                    if (task.getStopOnInvalidRecord()) {
+                        throw Throwables.propagate(ex);
+                    } else {
+                        logger.warn("invalid value \"{}\":\"{}\"", name, value);
+                        return value;
+                    }
                 }
             }
 
@@ -200,28 +255,9 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                         pageBuilder.setNull(column);
                         return;
                     }
-                    String name = column.getName();
-                    TimestampFormatter formatter = timestampFormatterMap.get(name);
-                    TimestampParser parser = timestampParserMap.get(name);
-
-                    if (formatter == null || parser == null) {
-                        pageBuilder.setString(column, pageReader.getString(column));
-                        return;
-                    }
-
                     String value = pageReader.getString(column);
-                    try {
-                        Timestamp timestamp = parser.parse(value);
-                        pageBuilder.setString(column, formatter.format(timestamp));
-                    }
-                    catch (TimestampParseException ex) {
-                        if (task.getStopOnInvalidRecord()) {
-                            throw Throwables.propagate(ex);
-                        } else {
-                            logger.warn("invalid value \"{}\"", value);
-                            pageBuilder.setNull(column);
-                        }
-                    }
+                    String formatted = formatTimestampString(task, column.getName(), value);
+                    pageBuilder.setString(column, formatted);
                 }
 
                 @Override
@@ -231,7 +267,10 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
                         pageBuilder.setNull(column);
                     }
                     else {
-                        pageBuilder.setJson(column, pageReader.getJson(column));
+                        String name = new StringBuilder("$.").append(column.getName()).toString();
+                        Value value = pageReader.getJson(column);
+                        Value formatted = formatTimestampStringRecursively(task, name, value);
+                        pageBuilder.setJson(column, formatted);
                     }
                 }
 

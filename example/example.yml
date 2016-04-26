@@ -12,6 +12,6 @@ filters:
     default_to_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
       - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
-      - {name: record.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+      - {name: "$.record.record[0].timestamp", from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
 out:
   type: stdout

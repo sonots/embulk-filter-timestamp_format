@@ -61,6 +61,7 @@ Output will be as:
 Run example:
 
 ```
+$ embulk gem install embulk-parser-jsonl
 $ ./gradlew classpath
 $ embulk run -I lib example/example.yml
 ```
