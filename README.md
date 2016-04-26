@@ -8,11 +8,11 @@ A filter plugin for Embulk to change timesatmp format
 
 - **columns**: columns to retain (array of hash)
   - **name**: name of column, must be a string column (required)
-  - **from_format**: specify the format of the input timestamp (string or an array, default is default_from_format)
+  - **from_format**: specify the format of the input timestamp (array of strings, default is default_from_format)
   - **from_timezone**: specify the timezone of the input timestamp (string, default is default_from_timezone)
   - **to_format**: specify the format of the output timestamp (string, default is default_to_format)
   - **to_timezone**: specify the timezone of the output timestamp (string, default is default_to_timezone)
-- **default_from_format**: default timestamp format for the input timestamp columns (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
+- **default_from_format**: default timestamp format for the input timestamp columns (array of strings, default is `["%Y-%m-%d %H:%M:%S.%N %z"]`)
 - **default_from_timezone**: default timezone for the input timestamp columns (string, default is `UTC`)
 - **default_to_format**: default timestamp format for the output timestamp columns (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
 - **default_to_timezone**: default timezone for the output timestamp olumns (string, default is `UTC`)
@@ -54,6 +54,7 @@ Output will be as:
 
 ## ToDo
 
+* Currently, input must be a String column and output will be a String column. But, support Timestamp column (input / output)
 * Write test
 
 ## Development
