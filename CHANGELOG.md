@@ -1,3 +1,10 @@
+# 0.1.5 (2016-04-29)
+
+Enhancements:
+
+* Support to cast from/into timestamp
+* Support to cast into long/double (unixtimesatmp)
+
 # 0.1.4 (2016-04-26)
 
 Enhancements:
