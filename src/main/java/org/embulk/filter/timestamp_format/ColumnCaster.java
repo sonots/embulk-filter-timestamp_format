@@ -2,21 +2,19 @@ package org.embulk.filter.timestamp_format;
 
 import org.embulk.filter.timestamp_format.cast.StringCast;
 import org.embulk.filter.timestamp_format.cast.TimestampCast;
+import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.ColumnConfig;
+import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
+import org.embulk.spi.Column;
+import org.embulk.spi.Exec;
+import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
+import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.DoubleType;
 import org.embulk.spi.type.LongType;
 import org.embulk.spi.type.StringType;
 import org.embulk.spi.type.TimestampType;
 import org.embulk.spi.type.Type;
-
-import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.ColumnConfig;
-import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
-
-import org.embulk.spi.Column;
-import org.embulk.spi.Exec;
-import org.embulk.spi.PageBuilder;
-import org.embulk.spi.time.Timestamp;
 import org.joda.time.DateTimeZone;
 import org.msgpack.value.Value;
 import org.slf4j.Logger;
@@ -69,7 +67,8 @@ public class ColumnCaster
         }
     }
 
-    private TimestampParser getTimestampParser(ColumnConfig columnConfig, PluginTask task) {
+    private TimestampParser getTimestampParser(ColumnConfig columnConfig, PluginTask task)
+    {
         DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
         List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
         return new TimestampParser(task.getJRuby(), formatList, timezone);

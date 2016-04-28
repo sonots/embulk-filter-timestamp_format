@@ -10,10 +10,10 @@ import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask
 import org.embulk.spi.time.JRubyTimeParserHelper;
 import org.embulk.spi.time.JRubyTimeParserHelperFactory;
 import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampParseException;
 
 import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
 
+import org.embulk.spi.time.TimestampParseException;
 import org.joda.time.DateTimeZone;
 import org.jruby.embed.ScriptingContainer;
 

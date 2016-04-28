@@ -4,7 +4,8 @@ import org.embulk.filter.timestamp_format.TimestampFormatter;
 import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 
-public class TimestampCast {
+public class TimestampCast
+{
     private TimestampCast() {}
 
     public static String asString(Timestamp value, TimestampFormatter formatter) throws DataException

@@ -52,17 +52,21 @@ public class ColumnVisitorImpl
         public void run() throws DataException;
     }
 
-    private void withStopOnInvalidRecord(final PageBuildable op, final Column inputColumn, final Column outputColumn) throws DataException {
+    private void withStopOnInvalidRecord(final PageBuildable op,
+                                         final Column inputColumn, final Column outputColumn) throws DataException
+    {
         if (pageReader.isNull(inputColumn)) {
             pageBuilder.setNull(outputColumn);
         }
         else {
             if (task.getStopOnInvalidRecord()) {
                 op.run();
-            } else {
+            }
+            else {
                 try {
                     op.run();
-                } catch (final DataException ex) {
+                }
+                catch (final DataException ex) {
                     logger.warn(ex.getMessage());
                     pageBuilder.setNull(outputColumn);
                 }
@@ -112,7 +116,8 @@ public class ColumnVisitorImpl
         }
         final Column outputColumn = outputColumnMap.get(inputColumn.getName());
         PageBuildable op = new PageBuildable() {
-            public void run() throws DataException {
+            public void run() throws DataException
+            {
                 columnCaster.setFromString(outputColumn, pageReader.getString(inputColumn));
             }
         };
@@ -128,7 +133,8 @@ public class ColumnVisitorImpl
         }
         final Column outputColumn = outputColumnMap.get(inputColumn.getName());
         PageBuildable op = new PageBuildable() {
-            public void run() throws DataException {
+            public void run() throws DataException
+            {
                 columnCaster.setFromTimestamp(outputColumn, pageReader.getTimestamp(inputColumn));
             }
         };

@@ -18,7 +18,6 @@ import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
-import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.DoubleType;
 import org.embulk.spi.type.LongType;
 import org.embulk.spi.type.StringType;
@@ -94,12 +93,16 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
             Type type = columnConfig.getType();
             boolean acceptable = false;
             if (type instanceof StringType) {
+                continue;
             }
             else if (type instanceof TimestampType) {
+                continue;
             }
             else if (type instanceof LongType) {
+                continue;
             }
             else if (type instanceof DoubleType) {
+                continue;
             }
             else {
                 throw new ConfigException("column type must be string, timestamp, long, or double");
@@ -135,7 +138,6 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         }
         return null;
     }
-
 
     @Override
     public PageOutput open(final TaskSource taskSource, final Schema inputSchema,
