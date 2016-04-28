@@ -6,7 +6,6 @@
 /classpath/
 build/
 .idea
-*.csv
 .tags
 .ruby-version
 *.iml
