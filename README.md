@@ -8,14 +8,15 @@ A filter plugin for Embulk to change timestamp format
 
 - **columns**: columns to retain (array of hash)
   - **name**: name of column (required)
-  - **from_format**: specify the format of the input timestamp (array of strings, default is default_from_timestamp_format)
-  - **from_timezone**: specify the timezone of the input timestamp (string, default is default_from_timezone)
-  - **to_format**: specify the format of the output timestamp (string, default is default_to_timestamp_format)
-  - **to_timezone**: specify the timezone of the output timestamp (string, default is default_to_timezone)
-- **default_from_timestamp_format**: default timestamp format for the input timestamp columns (array of strings, default is `["%Y-%m-%d %H:%M:%S.%N %z"]`)
-- **default_from_timezone**: default timezone for the input timestamp columns (string, default is `UTC`)
-- **default_to_timestamp_format**: default timestamp format for the output timestamp columns (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
-- **default_to_timezone**: default timezone for the output timestamp olumns (string, default is `UTC`)
+  - **type**: type to cast (string, timestamp, long (unixtimestamp), double (unixtimestamp), default is string)
+  - **from_format**: specify the format of the input string (array of strings, default is default_from_timestamp_format)
+  - **from_timezone**: specify the timezone of the input string (string, default is default_from_timezone)
+  - **to_format**: specify the format of the output string (string, default is default_to_timestamp_format)
+  - **to_timezone**: specify the timezone of the output string (string, default is default_to_timezone)
+- **default_from_timestamp_format**: default timestamp format for the input string (array of strings, default is `["%Y-%m-%d %H:%M:%S.%N %z"]`)
+- **default_from_timezone**: default timezone for the input string (string, default is `UTC`)
+- **default_to_timestamp_format**: default timestamp format for the output string (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
+- **default_to_timezone**: default timezone for the output string (string, default is `UTC`)
 * **stop_on_invalid_record**: stop bulk load transaction if a invalid record is found (boolean, default is `false)
 
 ## Example
@@ -23,8 +24,8 @@ A filter plugin for Embulk to change timestamp format
 Say example.jsonl is as follows (this is a typical format which Exporting BigQuery table outputs):
 
 ```
-{"timestamp":"2015-07-12 15:00:00 UTC","record":{"timestamp":"2015-07-12 15:00:00 UTC"}}
-{"timestamp":"2015-07-12 15:00:00.1 UTC","record":{"timestamp":"2015-07-12 15:00:00.1 UTC"}}
+{"timestamp":"2015-07-12 15:00:00 UTC","nested":{"timestamp":"2015-07-12 15:00:00 UTC"}}
+{"timestamp":"2015-07-12 15:00:00.1 UTC","nested":{"timestamp":"2015-07-12 15:00:00.1 UTC"}}
 ```
 
 ```yaml
@@ -35,27 +36,28 @@ in:
     type: jsonl
     columns:
     - {name: timestamp, type: string}
-    - {name: record, type: json}
+    - {name: nested, type: json}
 filters:
   - type: timestamp_format
     default_to_timezone: "Asia/Tokyo"
-    default_to_format: "%Y-%m-%d %H:%M:%S.%N"
+    default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
       - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
-      - {name: $.record.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+      - {name: $.nested.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
   type: stdout
 ```
 
 Output will be as:
 
 ```
-{"timestamp":"2015-07-13 00:00:00.0","record":{"timestamp":"2015-07-13 00:00:00.0}}
-{"timestamp":"2015-07-13 00:00:00.1","record":{"timestamp":"2015-07-13 00:00:00.1}}
+{"timestamp":"2015-07-13 00:00:00.0","nested":{"timestamp":"2015-07-13 00:00:00.0}}
+{"timestamp":"2015-07-13 00:00:00.1","nested":{"timestamp":"2015-07-13 00:00:00.1}}
 ```
+
+See [./example](./example) for more examples.
 
 ## ToDo
 
-* Support Timestamp columns (currently, only String columns are supported)
 * Write test
 
 ## Development
@@ -63,9 +65,8 @@ Output will be as:
 Run example:
 
 ```
-$ embulk gem install embulk-parser-jsonl
 $ ./gradlew classpath
-$ embulk run -I lib example/example.yml
+$ embulk preview -I lib example/example.yml
 ```
 
 Run test:

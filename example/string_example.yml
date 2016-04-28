@@ -18,4 +18,5 @@ filters:
       - {name: string2, type: timestamp}
       - {name: string3, type: long}
       - {name: string4, type: double}
-
+out:
+  type: "null"
