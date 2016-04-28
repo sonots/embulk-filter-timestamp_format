@@ -1,0 +1,21 @@
+in:
+  type: file
+  path_prefix: example/string_example.csv
+  parser:
+    type: csv
+    columns:
+      - {name: string1, type: string}
+      - {name: string2, type: string}
+      - {name: string3, type: string}
+      - {name: string4, type: string}
+filters:
+  - type: timestamp_format
+    default_to_timezone: "Asia/Tokyo"
+    default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
+    default_from_timestamp_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]
+    columns:
+      - {name: string1}
+      - {name: string2, type: timestamp}
+      - {name: string3, type: long}
+      - {name: string4, type: double}
+

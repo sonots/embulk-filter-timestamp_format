@@ -1,2 +1,0 @@
-{"timestamp":"2015-07-12 15:00:00 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00 UTC","int":0}],"record2":{"int":0}},"ignore_record":{"timestamp":"2015-07-12 15:00:00 UTC"}}
-{"timestamp":"2015-07-12 15:00:00.1 UTC","record":{"record":[{"timestamp":"2015-07-12 15:00:00.1 UTC","int":1}],"record2":{"int":1}},"ignore_record":{"timestamp":"2015-07-12 15:00:00.1 UTC"}}

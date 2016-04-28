@@ -1,0 +1,2 @@
+{"timestamp":"2015-07-12 15:00:00 UTC","nested":{"nested":[{"timestamp":"2015-07-12 15:00:00 UTC"}]},"ignore_nested":{"timestamp":"2015-07-12 15:00:00 UTC"}}
+{"timestamp":"2015-07-12 15:00:00.1 UTC","nested":{"nested":[{"timestamp":"2015-07-12 15:00:00.1 UTC"}]},"ignore_nested":{"timestamp":"2015-07-12 15:00:00.1 UTC"}}
