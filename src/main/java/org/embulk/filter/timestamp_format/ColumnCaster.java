@@ -1,5 +1,7 @@
 package org.embulk.filter.timestamp_format;
 
+import org.embulk.filter.timestamp_format.cast.DoubleCast;
+import org.embulk.filter.timestamp_format.cast.LongCast;
 import org.embulk.filter.timestamp_format.cast.StringCast;
 import org.embulk.filter.timestamp_format.cast.TimestampCast;
 import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.ColumnConfig;
@@ -52,6 +54,7 @@ public class ColumnCaster
     private void buildTimestampParserMap()
     {
         // columnName or jsonPath => TimestampParser
+        // we do not know input type of json here, so creates anyway
         for (ColumnConfig columnConfig : task.getColumns()) {
             TimestampParser parser = getTimestampParser(columnConfig, task);
             this.timestampParserMap.put(columnConfig.getName(), parser);
@@ -62,8 +65,10 @@ public class ColumnCaster
     {
         // columnName or jsonPath => TimestampFormatter
         for (ColumnConfig columnConfig : task.getColumns()) {
-            TimestampFormatter parser = getTimestampFormatter(columnConfig, task);
-            this.timestampFormatterMap.put(columnConfig.getName(), parser);
+            if (columnConfig.getType() instanceof StringType) {
+                TimestampFormatter parser = getTimestampFormatter(columnConfig, task);
+                this.timestampFormatterMap.put(columnConfig.getName(), parser);
+            }
         }
     }
 
@@ -79,6 +84,48 @@ public class ColumnCaster
         String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
         DateTimeZone timezone = columnConfig.getToTimeZone().or(task.getDefaultToTimeZone());
         return new TimestampFormatter(task.getJRuby(), format, timezone);
+    }
+
+    public void setFromLong(Column outputColumn, long value)
+    {
+        Type outputType = outputColumn.getType();
+        if (outputType instanceof StringType) {
+            TimestampFormatter timestampFormatter = timestampFormatterMap.get(outputColumn.getName());
+            pageBuilder.setString(outputColumn, LongCast.asString(value, timestampFormatter));
+        }
+        else if (outputType instanceof TimestampType) {
+            pageBuilder.setTimestamp(outputColumn, LongCast.asTimestamp(value));
+        }
+        else if (outputType instanceof LongType) {
+            pageBuilder.setLong(outputColumn, LongCast.asLong(value));
+        }
+        else if (outputType instanceof DoubleType) {
+            pageBuilder.setDouble(outputColumn, LongCast.asDouble(value));
+        }
+        else {
+            assert false;
+        }
+    }
+
+    public void setFromDouble(Column outputColumn, double value)
+    {
+        Type outputType = outputColumn.getType();
+        if (outputType instanceof StringType) {
+            TimestampFormatter timestampFormatter = timestampFormatterMap.get(outputColumn.getName());
+            pageBuilder.setString(outputColumn, DoubleCast.asString(value, timestampFormatter));
+        }
+        else if (outputType instanceof TimestampType) {
+            pageBuilder.setTimestamp(outputColumn, DoubleCast.asTimestamp(value));
+        }
+        else if (outputType instanceof LongType) {
+            pageBuilder.setLong(outputColumn, DoubleCast.asLong(value));
+        }
+        else if (outputType instanceof DoubleType) {
+            pageBuilder.setDouble(outputColumn, DoubleCast.asDouble(value));
+        }
+        else {
+            assert false;
+        }
     }
 
     public void setFromString(Column outputColumn, String value)

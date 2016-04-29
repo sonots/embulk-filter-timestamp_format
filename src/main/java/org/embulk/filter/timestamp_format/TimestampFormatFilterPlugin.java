@@ -18,7 +18,9 @@ import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
+import org.embulk.spi.type.BooleanType;
 import org.embulk.spi.type.DoubleType;
+import org.embulk.spi.type.JsonType;
 import org.embulk.spi.type.LongType;
 import org.embulk.spi.type.StringType;
 import org.embulk.spi.type.TimestampType;
@@ -88,24 +90,18 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
             }
         }
 
-        // throw if column type is not string or timestamp
+        // throw if column type is not supported
         for (ColumnConfig columnConfig : columns) {
+            String name = columnConfig.getName();
             Type type = columnConfig.getType();
-            boolean acceptable = false;
-            if (type instanceof StringType) {
-                continue;
+            if (type instanceof BooleanType) {
+                throw new ConfigException(String.format("casting to boolean is not available: \"%s\"", name));
             }
-            else if (type instanceof TimestampType) {
-                continue;
+            if (type instanceof JsonType) {
+                throw new ConfigException(String.format("casting to json is not available: \"%s\"", name));
             }
-            else if (type instanceof LongType) {
-                continue;
-            }
-            else if (type instanceof DoubleType) {
-                continue;
-            }
-            else {
-                throw new ConfigException("column type must be string, timestamp, long, or double");
+            if (name.startsWith("$.") && type instanceof TimestampType) {
+                throw new ConfigException(String.format("casting a json path into timestamp is not available: \"%s\"", name));
             }
         }
     }

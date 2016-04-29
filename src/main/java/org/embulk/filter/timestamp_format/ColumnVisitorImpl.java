@@ -79,41 +79,40 @@ public class ColumnVisitorImpl
     {
         if (pageReader.isNull(inputColumn)) {
             pageBuilder.setNull(inputColumn);
+            return;
         }
-        else {
-            pageBuilder.setBoolean(inputColumn, pageReader.getBoolean(inputColumn));
-        }
+        pageBuilder.setBoolean(inputColumn, pageReader.getBoolean(inputColumn));
     }
 
     @Override
     public void longColumn(final Column inputColumn)
     {
-        if (pageReader.isNull(inputColumn)) {
-            pageBuilder.setNull(inputColumn);
-        }
-        else {
-            pageBuilder.setLong(inputColumn, pageReader.getLong(inputColumn));
-        }
+        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+        PageBuildable op = new PageBuildable() {
+            public void run() throws DataException
+            {
+                columnCaster.setFromLong(outputColumn, pageReader.getLong(inputColumn));
+            }
+        };
+        withStopOnInvalidRecord(op, inputColumn, outputColumn);
     }
 
     @Override
     public void doubleColumn(final Column inputColumn)
     {
-        if (pageReader.isNull(inputColumn)) {
-            pageBuilder.setNull(inputColumn);
-        }
-        else {
-            pageBuilder.setDouble(inputColumn, pageReader.getDouble(inputColumn));
-        }
+        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+        PageBuildable op = new PageBuildable() {
+            public void run() throws DataException
+            {
+                columnCaster.setFromDouble(outputColumn, pageReader.getDouble(inputColumn));
+            }
+        };
+        withStopOnInvalidRecord(op, inputColumn, outputColumn);
     }
 
     @Override
     public void stringColumn(final Column inputColumn)
     {
-        if (pageReader.isNull(inputColumn)) {
-            pageBuilder.setNull(inputColumn);
-            return;
-        }
         final Column outputColumn = outputColumnMap.get(inputColumn.getName());
         PageBuildable op = new PageBuildable() {
             public void run() throws DataException
@@ -127,10 +126,6 @@ public class ColumnVisitorImpl
     @Override
     public void timestampColumn(final Column inputColumn)
     {
-        if (pageReader.isNull(inputColumn)) {
-            pageBuilder.setNull(inputColumn);
-            return;
-        }
         final Column outputColumn = outputColumnMap.get(inputColumn.getName());
         PageBuildable op = new PageBuildable() {
             public void run() throws DataException
@@ -144,11 +139,13 @@ public class ColumnVisitorImpl
     @Override
     public void jsonColumn(final Column inputColumn)
     {
-        if (pageReader.isNull(inputColumn)) {
-            pageBuilder.setNull(inputColumn);
-            return;
-        }
         final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        columnCaster.setFromJson(outputColumn, pageReader.getJson(inputColumn));
+        PageBuildable op = new PageBuildable() {
+            public void run() throws DataException
+            {
+                columnCaster.setFromJson(outputColumn, pageReader.getJson(inputColumn));
+            }
+        };
+        withStopOnInvalidRecord(op, inputColumn, outputColumn);
     }
 }

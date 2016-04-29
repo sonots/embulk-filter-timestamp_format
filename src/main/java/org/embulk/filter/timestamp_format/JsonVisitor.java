@@ -108,6 +108,14 @@ public class JsonVisitor
             }
             return ValueFactory.newMap(newValue, true);
         }
+        else if (value.isIntegerValue()) {
+            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
+            return jsonCaster.fromLong(columnConfig, value.asIntegerValue());
+        }
+        else if (value.isFloatValue()) {
+            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
+            return jsonCaster.fromDouble(columnConfig, value.asFloatValue());
+        }
         else if (value.isStringValue()) {
             ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
             return jsonCaster.fromString(columnConfig, value.asStringValue());

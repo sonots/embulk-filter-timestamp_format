@@ -1,0 +1,13 @@
+in:
+  type: file
+  path_prefix: example/json_double.jsonl
+  parser:
+    type: json
+filters:
+  - type: timestamp_format
+    columns:
+      - {name: $.record.double1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
+      - {name: $.record.double2, type: long}
+      - {name: $.record.double3, type: double}
+out:
+  type: "null"

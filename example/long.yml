@@ -1,0 +1,19 @@
+in:
+  type: file
+  path_prefix: example/long.csv
+  parser:
+    type: csv
+    columns:
+      - {name: long1, type: long}
+      - {name: long2, type: long}
+      - {name: long3, type: long}
+      - {name: long4, type: long}
+filters:
+  - type: timestamp_format
+    columns:
+      - {name: long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S"}
+      - {name: long2, type: timestamp}
+      - {name: long3, type: long}
+      - {name: long4, type: double}
+out:
+  type: "null"

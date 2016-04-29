@@ -1,6 +1,6 @@
 in:
   type: file
-  path_prefix: example/timestamp_example.csv
+  path_prefix: example/timestamp.csv
   parser:
     type: csv
     default_timestamp_format: "%Y-%m-%d %H:%M:%S.%N %z"

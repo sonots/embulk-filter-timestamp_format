@@ -1,6 +1,6 @@
 in:
   type: file
-  path_prefix: example/string_example.csv
+  path_prefix: example/string.csv
   parser:
     type: csv
     columns:
