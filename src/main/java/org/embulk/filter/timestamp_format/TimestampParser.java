@@ -17,13 +17,14 @@ import org.embulk.spi.time.TimestampParseException;
 import org.joda.time.DateTimeZone;
 import org.jruby.embed.ScriptingContainer;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
-public class TimestampParser
-{
-    public interface Task
-    {
+public class TimestampParser {
+    public interface Task {
         @Config("default_from_timezone")
         @ConfigDefault("\"UTC\"")
         DateTimeZone getDefaultFromTimeZone();
@@ -33,8 +34,7 @@ public class TimestampParser
         List<String> getDefaultFromTimestampFormat();
     }
 
-    public interface TimestampColumnOption
-    {
+    public interface TimestampColumnOption {
         @Config("from_timezone")
         @ConfigDefault("null")
         Optional<DateTimeZone> getFromTimeZone();
@@ -44,60 +44,71 @@ public class TimestampParser
         Optional<List<String>> getFromFormat();
     }
 
-    private final List<JRubyTimeParserHelper> helperList;
+    private final List<JRubyTimeParserHelper> jrubyParserList = new ArrayList<JRubyTimeParserHelper>();
+    private final List<SimpleDateFormat> javaParserList = new ArrayList<SimpleDateFormat>();
     private final DateTimeZone defaultFromTimeZone;
 
-    TimestampParser(PluginTask task)
-    {
+    TimestampParser(PluginTask task) {
         this(task.getJRuby(), task.getDefaultFromTimestampFormat(), task.getDefaultFromTimeZone());
     }
 
-    public TimestampParser(PluginTask task, TimestampColumnOption columnOption)
-    {
+    public TimestampParser(PluginTask task, TimestampColumnOption columnOption) {
         this(task.getJRuby(),
                 columnOption.getFromFormat().or(task.getDefaultFromTimestampFormat()),
                 columnOption.getFromTimeZone().or(task.getDefaultFromTimeZone()));
     }
 
-    public TimestampParser(ScriptingContainer jruby, List<String> formatList, DateTimeZone defaultFromTimeZone)
-    {
+    public TimestampParser(ScriptingContainer jruby, List<String> formatList, DateTimeZone defaultFromTimeZone) {
         JRubyTimeParserHelperFactory helperFactory = (JRubyTimeParserHelperFactory) jruby.runScriptlet("Embulk::Java::TimeParserHelper::Factory.new");
         // TODO get default current time from ExecTask.getExecTimestamp
-        this.helperList = new ArrayList<JRubyTimeParserHelper>();
         for (String format : formatList) {
-            JRubyTimeParserHelper helper = (JRubyTimeParserHelper) helperFactory.newInstance(format, 1970, 1, 1, 0, 0, 0, 0);  // TODO default time zone
-            this.helperList.add(helper);
+            if (format.contains("%")) {
+                JRubyTimeParserHelper helper = (JRubyTimeParserHelper) helperFactory.newInstance(format, 1970, 1, 1, 0, 0, 0, 0);  // TODO default time zone
+                this.jrubyParserList.add(helper);
+            } else {
+                SimpleDateFormat parser = new SimpleDateFormat(format);
+                parser.setTimeZone(defaultFromTimeZone.toTimeZone());
+                this.javaParserList.add(parser);
+            }
         }
         this.defaultFromTimeZone = defaultFromTimeZone;
     }
 
-    public DateTimeZone getDefaultFromTimeZone()
-    {
+    public DateTimeZone getDefaultFromTimeZone() {
         return defaultFromTimeZone;
     }
 
-    public Timestamp parse(String text) throws TimestampParseException
-    {
-        JRubyTimeParserHelper helper = null;
+    public Timestamp parse(String text) throws TimestampParseException, ParseException {
+        if (!jrubyParserList.isEmpty()) {
+            return jrubyParse(text);
+        } else if (!javaParserList.isEmpty()) {
+            return javaParse(text);
+        } else {
+            assert false;
+            throw new RuntimeException();
+        }
+    }
+
+    private Timestamp jrubyParse(String text) throws TimestampParseException {
         long localUsec = -1;
         TimestampParseException exception = null;
 
-        for (JRubyTimeParserHelper h : helperList) {
+        JRubyTimeParserHelper helper = null;
+        for (JRubyTimeParserHelper h : jrubyParserList) {
             helper = h;
             try {
-                localUsec = helper.strptimeUsec(text);
+                localUsec = helper.strptimeUsec(text); // NOTE: micro second resolution
                 break;
-            }
-            catch (TimestampParseException ex) {
+            } catch (TimestampParseException ex) {
                 exception = ex;
             }
         }
         if (localUsec == -1) {
             throw exception;
         }
+        DateTimeZone timeZone = defaultFromTimeZone;
         String zone = helper.getZone();
 
-        DateTimeZone timeZone = defaultFromTimeZone;
         if (zone != null) {
             // TODO cache parsed zone?
             timeZone = parseDateTimeZone(zone);
@@ -111,5 +122,25 @@ public class TimestampParser
         long sec = timeZone.convertLocalToUTC(localSec * 1000, false) / 1000;
 
         return Timestamp.ofEpochSecond(sec, usec * 1000);
+    }
+
+    private Timestamp javaParse(String text) throws ParseException {
+        long msec = -1;
+        ParseException exception = null;
+
+        for (SimpleDateFormat parser : javaParserList) {
+            try {
+                msec = parser.parse(text).getTime(); // NOTE: milli second resolution
+                break;
+            } catch (ParseException ex) {
+                exception = ex;
+            }
+        }
+        if (msec == -1) {
+            throw exception;
+        }
+
+        long nanoAdjustment = msec * 1000000;
+        return Timestamp.ofEpochSecond(0, nanoAdjustment);
     }
 }
