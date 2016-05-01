@@ -9,3 +9,4 @@ build/
 .tags
 .ruby-version
 *.iml
+dummy.csv

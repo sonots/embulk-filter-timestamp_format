@@ -1,0 +1,14 @@
+in:
+  type: file
+  path_prefix: bench/dummy
+  parser:
+    type: csv
+    columns:
+      - {name: timestamp, type: string}
+filters:
+  - type: timestamp_format
+    columns:
+      - {name: timestamp, from_format: ["yyyy-MM-dd hh:mm:ss.SSS"], to_format: "yyyy-MM-dd"}
+
+out:
+  type: "null"
