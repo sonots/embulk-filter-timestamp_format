@@ -4,6 +4,7 @@ import org.embulk.spi.DataException;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
+import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.ColumnConfig;
 import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
 
 import org.embulk.spi.Column;
@@ -13,6 +14,7 @@ import org.embulk.spi.PageBuilder;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class ColumnVisitorImpl
         implements ColumnVisitor
@@ -23,6 +25,7 @@ public class ColumnVisitorImpl
     private final Schema outputSchema;
     private final PageReader pageReader;
     private final PageBuilder pageBuilder;
+    private final HashSet<String> shouldCastSet = new HashSet<>();
     private final HashMap<String, Column> outputColumnMap = new HashMap<>();
     private final ColumnCaster columnCaster;
 
@@ -35,8 +38,28 @@ public class ColumnVisitorImpl
         this.pageReader   = pageReader;
         this.pageBuilder  = pageBuilder;
 
+        buildShouldCastSet();
         buildOutputColumnMap();
         this.columnCaster = new ColumnCaster(task, inputSchema, outputSchema, pageReader, pageBuilder);
+    }
+
+    private void buildShouldCastSet()
+    {
+        // columnName => Boolean to avoid unnecessary cast
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            String name = columnConfig.getName();
+            if (name.startsWith("$.")) {
+                String firstName = name.split("\\.", 3)[1]; // check only top level column name
+                shouldCastSet.add(firstName);
+                continue;
+            }
+            shouldCastSet.add(name);
+        }
+    }
+
+    private boolean shouldCast(String name)
+    {
+        return shouldCastSet.contains(name);
     }
 
     private void buildOutputColumnMap()
@@ -79,73 +102,124 @@ public class ColumnVisitorImpl
     {
         if (pageReader.isNull(inputColumn)) {
             pageBuilder.setNull(inputColumn);
-            return;
         }
-        pageBuilder.setBoolean(inputColumn, pageReader.getBoolean(inputColumn));
+        else {
+            pageBuilder.setBoolean(inputColumn, pageReader.getBoolean(inputColumn));
+        }
     }
 
     @Override
     public void longColumn(final Column inputColumn)
     {
-        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        PageBuildable op = new PageBuildable() {
-            public void run() throws DataException
-            {
-                columnCaster.setFromLong(outputColumn, pageReader.getLong(inputColumn));
+        String name = inputColumn.getName();
+        if (! shouldCast(name)){
+            if (pageReader.isNull(inputColumn)) {
+                pageBuilder.setNull(inputColumn);
             }
-        };
-        withStopOnInvalidRecord(op, inputColumn, outputColumn);
+            else {
+                pageBuilder.setLong(inputColumn, pageReader.getLong(inputColumn));
+            }
+        }
+        else {
+            final Column outputColumn = outputColumnMap.get(name);
+            PageBuildable op = new PageBuildable() {
+                public void run() throws DataException {
+                    columnCaster.setFromLong(outputColumn, pageReader.getLong(inputColumn));
+                }
+            };
+            withStopOnInvalidRecord(op, inputColumn, outputColumn);
+        }
     }
 
     @Override
     public void doubleColumn(final Column inputColumn)
     {
-        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        PageBuildable op = new PageBuildable() {
-            public void run() throws DataException
-            {
-                columnCaster.setFromDouble(outputColumn, pageReader.getDouble(inputColumn));
+        String name = inputColumn.getName();
+        if (! shouldCast(name)){
+            if (pageReader.isNull(inputColumn)) {
+                pageBuilder.setNull(inputColumn);
             }
-        };
-        withStopOnInvalidRecord(op, inputColumn, outputColumn);
+            else {
+                pageBuilder.setDouble(inputColumn, pageReader.getDouble(inputColumn));
+            }
+        }
+        else {
+            final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+            PageBuildable op = new PageBuildable() {
+                public void run() throws DataException {
+                    columnCaster.setFromDouble(outputColumn, pageReader.getDouble(inputColumn));
+                }
+            };
+            withStopOnInvalidRecord(op, inputColumn, outputColumn);
+        }
     }
 
     @Override
     public void stringColumn(final Column inputColumn)
     {
-        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        PageBuildable op = new PageBuildable() {
-            public void run() throws DataException
-            {
-                columnCaster.setFromString(outputColumn, pageReader.getString(inputColumn));
+        String name = inputColumn.getName();
+        if (! shouldCast(name)){
+            if (pageReader.isNull(inputColumn)) {
+                pageBuilder.setNull(inputColumn);
             }
-        };
-        withStopOnInvalidRecord(op, inputColumn, outputColumn);
+            else {
+                pageBuilder.setString(inputColumn, pageReader.getString(inputColumn));
+            }
+        }
+        else {
+            final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+            PageBuildable op = new PageBuildable() {
+                public void run() throws DataException {
+                    columnCaster.setFromString(outputColumn, pageReader.getString(inputColumn));
+                }
+            };
+            withStopOnInvalidRecord(op, inputColumn, outputColumn);
+        }
     }
 
     @Override
     public void timestampColumn(final Column inputColumn)
     {
-        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        PageBuildable op = new PageBuildable() {
-            public void run() throws DataException
-            {
-                columnCaster.setFromTimestamp(outputColumn, pageReader.getTimestamp(inputColumn));
+        String name = inputColumn.getName();
+        if (! shouldCast(name)){
+            if (pageReader.isNull(inputColumn)) {
+                pageBuilder.setNull(inputColumn);
             }
-        };
-        withStopOnInvalidRecord(op, inputColumn, outputColumn);
+            else {
+                pageBuilder.setTimestamp(inputColumn, pageReader.getTimestamp(inputColumn));
+            }
+        }
+        else {
+            final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+            PageBuildable op = new PageBuildable() {
+                public void run() throws DataException {
+                    columnCaster.setFromTimestamp(outputColumn, pageReader.getTimestamp(inputColumn));
+                }
+            };
+            withStopOnInvalidRecord(op, inputColumn, outputColumn);
+        }
     }
 
     @Override
     public void jsonColumn(final Column inputColumn)
     {
-        final Column outputColumn = outputColumnMap.get(inputColumn.getName());
-        PageBuildable op = new PageBuildable() {
-            public void run() throws DataException
-            {
-                columnCaster.setFromJson(outputColumn, pageReader.getJson(inputColumn));
+        String name = inputColumn.getName();
+        if (! shouldCast(name)){
+            if (pageReader.isNull(inputColumn)) {
+                pageBuilder.setNull(inputColumn);
             }
-        };
-        withStopOnInvalidRecord(op, inputColumn, outputColumn);
+            else {
+                pageBuilder.setJson(inputColumn, pageReader.getJson(inputColumn));
+            }
+        }
+        else {
+            final Column outputColumn = outputColumnMap.get(inputColumn.getName());
+            PageBuildable op = new PageBuildable() {
+                public void run() throws DataException {
+                    columnCaster.setFromJson(outputColumn, pageReader.getJson(inputColumn));
+                }
+            };
+            withStopOnInvalidRecord(op, inputColumn, outputColumn);
+        }
     }
 }

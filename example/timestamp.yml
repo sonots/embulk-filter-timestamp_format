@@ -14,9 +14,9 @@ filters:
     default_to_timezone: "Asia/Tokyo"
     default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
-      - {name: timestamp1}
+      - {name: timestamp1, to_format: "%Y-%m-%d %H:%M:%S.%N"}
       - {name: timestamp2, type: timestamp}
-      - {name: timestamp3, type: long}
-      - {name: timestamp4, type: double}
+      - {name: timestamp3, type: long, to_unit: ms}
+      - {name: timestamp4, type: double, to_unit: ms}
 out:
   type: "null"

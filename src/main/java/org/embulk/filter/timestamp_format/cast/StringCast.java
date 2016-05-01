@@ -2,6 +2,7 @@ package org.embulk.filter.timestamp_format.cast;
 
 import org.embulk.filter.timestamp_format.TimestampFormatter;
 import org.embulk.filter.timestamp_format.TimestampParser;
+import org.embulk.filter.timestamp_format.TimestampUnit;
 import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.time.TimestampParseException;
@@ -36,21 +37,21 @@ public class StringCast
         }
     }
 
-    public static long asLong(String value, TimestampParser parser) throws DataException
+    public static long asLong(String value, TimestampParser parser, TimestampUnit toUnit) throws DataException
     {
         try {
             Timestamp timestamp = parser.parse(value);
-            return timestamp.getEpochSecond();
+            return TimestampUnit.toLong(timestamp, toUnit);
         }
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
     }
-    public static double asDouble(String value, TimestampParser parser) throws DataException
+    public static double asDouble(String value, TimestampParser parser, TimestampUnit toUnit) throws DataException
     {
         try {
             Timestamp timestamp = parser.parse(value);
-            return TimestampCast.asDouble(timestamp);
+            return TimestampUnit.toDouble(timestamp, toUnit);
         }
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);

@@ -27,28 +27,37 @@ class JsonCaster
     private final PluginTask task;
     private final HashMap<String, TimestampParser> timestampParserMap;
     private final HashMap<String, TimestampFormatter> timestampFormatterMap;
+    private final HashMap<String, TimestampUnit> fromTimestampUnitMap;
+    private final HashMap<String, TimestampUnit> toTimestampUnitMap;
 
     JsonCaster(PluginTask task,
                HashMap<String, TimestampParser> timestampParserMap,
-               HashMap<String, TimestampFormatter> timestampFormatterMap)
+               HashMap<String, TimestampFormatter> timestampFormatterMap,
+               HashMap<String, TimestampUnit> fromTimestampUnitMap,
+               HashMap<String, TimestampUnit> toTimestampUnitMap)
     {
         this.task = task;
         this.timestampParserMap = timestampParserMap;
         this.timestampFormatterMap = timestampFormatterMap;
+        this.fromTimestampUnitMap = fromTimestampUnitMap;
+        this.toTimestampUnitMap = toTimestampUnitMap;
     }
 
     public Value fromLong(ColumnConfig columnConfig, IntegerValue value)
     {
         Type outputType = columnConfig.getType();
+        TimestampUnit fromUnit = fromTimestampUnitMap.get(columnConfig.getName());
         if (outputType instanceof StringType) {
             TimestampFormatter formatter = timestampFormatterMap.get(columnConfig.getName());
-            return ValueFactory.newString(LongCast.asString(value.asLong(), formatter));
+            return ValueFactory.newString(LongCast.asString(value.asLong(), fromUnit, formatter));
         }
         else if (outputType instanceof LongType) {
-            return ValueFactory.newInteger(LongCast.asLong(value.asLong()));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newInteger(LongCast.asLong(value.asLong(), fromUnit, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            return ValueFactory.newFloat(LongCast.asDouble(value.asLong()));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newFloat(LongCast.asDouble(value.asLong(), fromUnit, toUnit));
         }
         else {
             assert false;
@@ -59,15 +68,18 @@ class JsonCaster
     public Value fromDouble(ColumnConfig columnConfig, FloatValue value)
     {
         Type outputType = columnConfig.getType();
+        TimestampUnit fromUnit = fromTimestampUnitMap.get(columnConfig.getName());
         if (outputType instanceof StringType) {
             TimestampFormatter formatter = timestampFormatterMap.get(columnConfig.getName());
-            return ValueFactory.newString(DoubleCast.asString(value.toDouble(), formatter));
+            return ValueFactory.newString(DoubleCast.asString(value.toDouble(), fromUnit, formatter));
         }
         else if (outputType instanceof LongType) {
-            return ValueFactory.newInteger(DoubleCast.asLong(value.toDouble()));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newInteger(DoubleCast.asLong(value.toDouble(), fromUnit, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            return ValueFactory.newFloat(DoubleCast.asDouble(value.toDouble()));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newFloat(DoubleCast.asDouble(value.toDouble(), fromUnit, toUnit));
         }
         else {
             assert false;
@@ -84,10 +96,12 @@ class JsonCaster
             return ValueFactory.newString(StringCast.asString(value.asString(), parser, formatter));
         }
         else if (outputType instanceof LongType) {
-            return ValueFactory.newInteger(StringCast.asLong(value.asString(), parser));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newInteger(StringCast.asLong(value.asString(), parser, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            return ValueFactory.newFloat(StringCast.asDouble(value.asString(), parser));
+            TimestampUnit toUnit = toTimestampUnitMap.get(columnConfig.getName());
+            return ValueFactory.newFloat(StringCast.asDouble(value.asString(), parser, toUnit));
         }
         else {
             assert false;

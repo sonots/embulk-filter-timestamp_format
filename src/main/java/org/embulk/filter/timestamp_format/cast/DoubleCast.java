@@ -1,6 +1,7 @@
 package org.embulk.filter.timestamp_format.cast;
 
 import org.embulk.filter.timestamp_format.TimestampFormatter;
+import org.embulk.filter.timestamp_format.TimestampUnit;
 import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 
@@ -8,26 +9,24 @@ public class DoubleCast
 {
     private DoubleCast() {}
 
-    public static String asString(double value, TimestampFormatter formatter) throws DataException
+    public static String asString(double value, TimestampUnit fromUnit, TimestampFormatter formatter) throws DataException
     {
-        Timestamp timestamp = asTimestamp(value);
+        Timestamp timestamp = TimestampUnit.toTimestamp(value, fromUnit);
         return formatter.format(timestamp);
     }
 
-    public static Timestamp asTimestamp(double value) throws DataException
+    public static Timestamp asTimestamp(double value, TimestampUnit fromUnit) throws DataException
     {
-        long epochSecond = (long) value;
-        long nano = (long) ((value - epochSecond) * 1000000000);
-        return Timestamp.ofEpochSecond(epochSecond, nano);
+        return TimestampUnit.toTimestamp(value, fromUnit);
     }
 
-    public static long asLong(double value) throws DataException
+    public static long asLong(double value, TimestampUnit fromUnit, TimestampUnit toUnit) throws DataException
     {
-        return (long) value;
+        return (long) TimestampUnit.changeUnit(value, fromUnit, toUnit);
     }
 
-    public static double asDouble(double value) throws DataException
+    public static double asDouble(double value, TimestampUnit fromUnit, TimestampUnit toUnit) throws DataException
     {
-        return value;
+        return TimestampUnit.changeUnit(value, fromUnit, toUnit);
     }
 }

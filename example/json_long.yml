@@ -5,6 +5,7 @@ in:
     type: json
 filters:
   - type: timestamp_format
+    default_from_timestamp_unit: ms
     columns:
       - {name: $.record.long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
       - {name: $.record.long2, type: long}

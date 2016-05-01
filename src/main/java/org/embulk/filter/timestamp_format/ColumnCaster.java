@@ -34,6 +34,8 @@ public class ColumnCaster
     private final PageBuilder pageBuilder;
     private final HashMap<String, TimestampParser> timestampParserMap = new HashMap<>();
     private final HashMap<String, TimestampFormatter> timestampFormatterMap = new HashMap<>();
+    private final HashMap<String, TimestampUnit> fromTimestampUnitMap = new HashMap<>();
+    private final HashMap<String, TimestampUnit> toTimestampUnitMap = new HashMap<>();
     private final JsonVisitor jsonVisitor;
 
     ColumnCaster(PluginTask task, Schema inputSchema, Schema outputSchema, PageReader pageReader, PageBuilder pageBuilder)
@@ -46,8 +48,10 @@ public class ColumnCaster
 
         buildTimestampParserMap();
         buildTimestampFormatterMap();
+        buildFromTimestampUnitMap();
+        buildToTimestampUnitMap();
 
-        JsonCaster jsonCaster = new JsonCaster(task, timestampParserMap, timestampFormatterMap);
+        JsonCaster jsonCaster = new JsonCaster(task, timestampParserMap, timestampFormatterMap, fromTimestampUnitMap, toTimestampUnitMap);
         this.jsonVisitor = new JsonVisitor(task, jsonCaster);
     }
 
@@ -61,6 +65,13 @@ public class ColumnCaster
         }
     }
 
+    private TimestampParser getTimestampParser(ColumnConfig columnConfig, PluginTask task)
+    {
+        DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
+        List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
+        return new TimestampParser(task.getJRuby(), formatList, timezone);
+    }
+
     private void buildTimestampFormatterMap()
     {
         // columnName or jsonPath => TimestampFormatter
@@ -72,13 +83,6 @@ public class ColumnCaster
         }
     }
 
-    private TimestampParser getTimestampParser(ColumnConfig columnConfig, PluginTask task)
-    {
-        DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
-        List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
-        return new TimestampParser(task.getJRuby(), formatList, timezone);
-    }
-
     private TimestampFormatter getTimestampFormatter(ColumnConfig columnConfig, PluginTask task)
     {
         String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
@@ -86,21 +90,56 @@ public class ColumnCaster
         return new TimestampFormatter(task.getJRuby(), format, timezone);
     }
 
+    private void buildFromTimestampUnitMap()
+    {
+        // columnName or jsonPath => TimestampUnit
+        // we do not know input type of json here, so creates anyway
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            TimestampUnit unit = getFromTimestampUnit(columnConfig, task);
+            this.fromTimestampUnitMap.put(columnConfig.getName(), unit);
+        }
+    }
+
+    private TimestampUnit getFromTimestampUnit(ColumnConfig columnConfig, PluginTask task)
+    {
+        return columnConfig.getFromUnit().or(task.getDefaultFromTimestampUnit());
+    }
+
+    private void buildToTimestampUnitMap()
+    {
+        // columnName or jsonPath => TimestampUnit
+        for (ColumnConfig columnConfig : task.getColumns()) {
+            Type type = columnConfig.getType();
+            if (type instanceof LongType || type instanceof DoubleType) {
+                TimestampUnit unit = getToTimestampUnit(columnConfig, task);
+                this.toTimestampUnitMap.put(columnConfig.getName(), unit);
+            }
+        }
+    }
+
+    private TimestampUnit getToTimestampUnit(ColumnConfig columnConfig, PluginTask task)
+    {
+        return columnConfig.getToUnit().or(task.getDefaultToTimestampUnit());
+    }
+
     public void setFromLong(Column outputColumn, long value)
     {
         Type outputType = outputColumn.getType();
+        TimestampUnit fromUnit = fromTimestampUnitMap.get(outputColumn.getName());
         if (outputType instanceof StringType) {
             TimestampFormatter timestampFormatter = timestampFormatterMap.get(outputColumn.getName());
-            pageBuilder.setString(outputColumn, LongCast.asString(value, timestampFormatter));
+            pageBuilder.setString(outputColumn, LongCast.asString(value, fromUnit, timestampFormatter));
         }
         else if (outputType instanceof TimestampType) {
-            pageBuilder.setTimestamp(outputColumn, LongCast.asTimestamp(value));
+            pageBuilder.setTimestamp(outputColumn, LongCast.asTimestamp(value, fromUnit));
         }
         else if (outputType instanceof LongType) {
-            pageBuilder.setLong(outputColumn, LongCast.asLong(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setLong(outputColumn, LongCast.asLong(value, fromUnit, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            pageBuilder.setDouble(outputColumn, LongCast.asDouble(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setDouble(outputColumn, LongCast.asDouble(value, fromUnit, toUnit));
         }
         else {
             assert false;
@@ -110,18 +149,21 @@ public class ColumnCaster
     public void setFromDouble(Column outputColumn, double value)
     {
         Type outputType = outputColumn.getType();
+        TimestampUnit fromUnit = fromTimestampUnitMap.get(outputColumn.getName());
         if (outputType instanceof StringType) {
             TimestampFormatter timestampFormatter = timestampFormatterMap.get(outputColumn.getName());
-            pageBuilder.setString(outputColumn, DoubleCast.asString(value, timestampFormatter));
+            pageBuilder.setString(outputColumn, DoubleCast.asString(value, fromUnit, timestampFormatter));
         }
         else if (outputType instanceof TimestampType) {
-            pageBuilder.setTimestamp(outputColumn, DoubleCast.asTimestamp(value));
+            pageBuilder.setTimestamp(outputColumn, DoubleCast.asTimestamp(value, fromUnit));
         }
         else if (outputType instanceof LongType) {
-            pageBuilder.setLong(outputColumn, DoubleCast.asLong(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setLong(outputColumn, DoubleCast.asLong(value, fromUnit, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            pageBuilder.setDouble(outputColumn, DoubleCast.asDouble(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setDouble(outputColumn, DoubleCast.asDouble(value, fromUnit, toUnit));
         }
         else {
             assert false;
@@ -140,10 +182,12 @@ public class ColumnCaster
             pageBuilder.setTimestamp(outputColumn, StringCast.asTimestamp(value, timestampParser));
         }
         else if (outputType instanceof LongType) {
-            pageBuilder.setLong(outputColumn, StringCast.asLong(value, timestampParser));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setLong(outputColumn, StringCast.asLong(value, timestampParser, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            pageBuilder.setDouble(outputColumn, StringCast.asDouble(value, timestampParser));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setDouble(outputColumn, StringCast.asDouble(value, timestampParser, toUnit));
         }
         else {
             assert false;
@@ -161,10 +205,12 @@ public class ColumnCaster
             pageBuilder.setTimestamp(outputColumn, value);
         }
         else if (outputType instanceof LongType) {
-            pageBuilder.setLong(outputColumn, TimestampCast.asLong(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setLong(outputColumn, TimestampCast.asLong(value, toUnit));
         }
         else if (outputType instanceof DoubleType) {
-            pageBuilder.setDouble(outputColumn, TimestampCast.asDouble(value));
+            TimestampUnit toUnit = toTimestampUnitMap.get(outputColumn.getName());
+            pageBuilder.setDouble(outputColumn, TimestampCast.asDouble(value, toUnit));
         }
         else {
             assert false;
