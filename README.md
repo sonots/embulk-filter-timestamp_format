@@ -19,8 +19,8 @@ A filter plugin for Embulk to change timestamp format
 - **default_from_timezone**: default timezone for the input string (string, default is `UTC`)
 - **default_to_timestamp_format**: default timestamp format for the output string (string, default is `%Y-%m-%d %H:%M:%S.%N %z`)
 - **default_to_timezone**: default timezone for the output string (string, default is `UTC`)
-- **default_from_timetamp_unit**: default time unit such as second, ms, us, ns for the input unixtimestamp (string, default is `second`)
-- **default_to_timetamp_unit**: default time unit such as second, ms, us, ns for the output unixtimestamp (string, default is `second`)
+- **default_from_timestamp_unit**: default time unit such as `second`, `ms`, `us`, `ns` for the input unixtimestamp (string, default is `second`)
+- **default_to_timestamp_unit**: default time unit such as `second`, `ms`, `us`, `ns` for the output unixtimestamp (string, default is `second`)
 - **stop_on_invalid_record**: stop bulk load transaction if a invalid record is found (boolean, default is `false`)
 
 ## Example
