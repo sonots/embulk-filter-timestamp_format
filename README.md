@@ -37,7 +37,7 @@ in:
   type: file
   path_prefix: example/example.jsonl
   parser:
-    type: jsonl
+    type: jsonl # not json parser
     columns:
     - {name: timestamp, type: string}
     - {name: nested, type: json}
@@ -46,16 +46,17 @@ filters:
     default_to_timezone: "Asia/Tokyo"
     default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
-      - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+      - {name: timestamp, type: long, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"], to_unit: ms}
       - {name: $.nested.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+out:
   type: stdout
 ```
 
 Output will be as:
 
 ```
-{"timestamp":"2015-07-13 00:00:00.0","nested":{"timestamp":"2015-07-13 00:00:00.0}}
-{"timestamp":"2015-07-13 00:00:00.1","nested":{"timestamp":"2015-07-13 00:00:00.1}}
+{"timestamp":1436713200000,"nested":{"timestamp":"2015-07-13 00:00:00.0}}
+{"timestamp":1436713200100,"nested":{"timestamp":"2015-07-13 00:00:00.1}}
 ```
 
 See [./example](./example) for more examples.
