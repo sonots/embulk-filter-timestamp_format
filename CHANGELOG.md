@@ -1,3 +1,10 @@
+# 0.1.6 (2016-05-01)
+
+Enhancements:
+
+* Support unixtimestamp unit such as milli sec, micro sec, nano sec
+* Support Java timestamp parser/formatter (SimpleDateFormat)
+
 # 0.1.5 (2016-04-29)
 
 Enhancements:
