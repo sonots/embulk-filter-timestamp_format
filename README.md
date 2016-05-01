@@ -8,7 +8,7 @@ A filter plugin for Embulk to change timestamp format
 
 - **columns**: columns to retain (array of hash)
   - **name**: name of column (required)
-  - **type**: type to cast (string, timestamp, long (unixtimestamp), double (unixtimestamp), default is string)
+  - **type**: type to cast, choose one of `string`, `timestamp`, `long` (unixtimestamp), `double` (unixtimestamp) (string, default is `string`)
   - **from_format**: specify the format of the input string (array of strings, default is default_from_timestamp_format)
   - **from_timezone**: specify the timezone of the input string (string, default is default_from_timezone)
   - **to_format**: specify the format of the output string (string, default is default_to_timestamp_format)
@@ -43,11 +43,12 @@ in:
     - {name: nested, type: json}
 filters:
   - type: timestamp_format
+    default_from_timestamp_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]
     default_to_timezone: "Asia/Tokyo"
     default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
     columns:
-      - {name: timestamp, type: long, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"], to_unit: ms}
-      - {name: $.nested.timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]}
+      - {name: timestamp, type: long, to_unit: ms}
+      - {name: $.nested.timestamp}
 out:
   type: stdout
 ```
@@ -61,7 +62,7 @@ Output will be as:
 
 See [./example](./example) for more examples.
 
-## Timestamp Parser/Formatter Performance Issue
+## JRuby Timestamp Parser/Formatter Performance Issue
 
 Embulk's timestamp parser/formatter originally uses jruby implementation, but it is slow.
 To improve performance, this plugin also supports Java's [SimpleDateFormat](https://docs.oracle.com/javase/jp/6/api/java/text/SimpleDateFormat.html) format as:
@@ -77,12 +78,11 @@ in:
     - {name: nested, type: json}
 filters:
   - type: timestamp_format
-    default_from_timezone: "Asia/Taipei"
     default_from_timestamp_format: ["yyyy-MM-dd HH:mm:ss.SSS z", "yyyy-MM-dd HH:mm:ss z", "yyyy-MM-dd HH:mm:ss"]
     default_to_timezone: "Asia/Taipei"
     default_to_timestamp_format: "yyyy-MM-dd HH:mm:ss.SSS Z"
     columns:
-      - {name: timestamp}
+      - {name: timestamp, type: long, to_unit: ms}
       - {name: $.nested.timestamp}
 out:
   type: stdout
