@@ -1,5 +1,6 @@
 package org.embulk.filter.timestamp_format;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
@@ -18,11 +19,9 @@ import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
+import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.BooleanType;
-import org.embulk.spi.type.DoubleType;
 import org.embulk.spi.type.JsonType;
-import org.embulk.spi.type.LongType;
-import org.embulk.spi.type.StringType;
 import org.embulk.spi.type.TimestampType;
 import org.embulk.spi.type.Type;
 import org.jruby.embed.ScriptingContainer;
@@ -46,6 +45,14 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         @Config("type")
         @ConfigDefault("\"string\"")
         Type getType();
+
+        @Config("from_unit")
+        @ConfigDefault("null")
+        Optional<TimestampUnit> getFromUnit();
+
+        @Config("to_unit")
+        @ConfigDefault("null")
+        Optional<TimestampUnit> getToUnit();
     }
 
     interface PluginTask extends Task,
@@ -58,6 +65,14 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         @Config("stop_on_invalid_record")
         @ConfigDefault("false")
         Boolean getStopOnInvalidRecord();
+
+        @Config("default_from_timestamp_unit")
+        @ConfigDefault("\"second\"")
+        TimestampUnit getDefaultFromTimestampUnit();
+
+        @Config("default_to_timestamp_unit")
+        @ConfigDefault("\"second\"")
+        TimestampUnit getDefaultToTimestampUnit();
 
         @ConfigInject
         ScriptingContainer getJRuby();

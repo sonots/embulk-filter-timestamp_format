@@ -1,6 +1,7 @@
 package org.embulk.filter.timestamp_format.cast;
 
 import org.embulk.filter.timestamp_format.TimestampFormatter;
+import org.embulk.filter.timestamp_format.TimestampUnit;
 import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 
@@ -18,15 +19,13 @@ public class TimestampCast
         return value;
     }
 
-    public static long asLong(Timestamp value) throws DataException
+    public static long asLong(Timestamp value, TimestampUnit toUnit) throws DataException
     {
-        return value.getEpochSecond();
+        return TimestampUnit.asLong(value, toUnit);
     }
 
-    public static double asDouble(Timestamp value) throws DataException
+    public static double asDouble(Timestamp value, TimestampUnit toUnit) throws DataException
     {
-        long epoch = value.getEpochSecond();
-        int nano = value.getNano();
-        return (double) epoch + ((double) nano / 1000000000.0);
+        return TimestampUnit.asDouble(value, toUnit);
     }
 }

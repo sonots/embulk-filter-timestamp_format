@@ -1,6 +1,7 @@
 package org.embulk.filter.timestamp_format.cast;
 
 import org.embulk.filter.timestamp_format.TimestampFormatter;
+import org.embulk.filter.timestamp_format.TimestampUnit;
 import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 
@@ -8,24 +9,24 @@ public class LongCast
 {
     private LongCast() {}
 
-    public static String asString(long value, TimestampFormatter formatter) throws DataException
+    public static String asString(long value, TimestampUnit fromUnit, TimestampFormatter formatter) throws DataException
     {
-        Timestamp timestamp = Timestamp.ofEpochSecond(value);
+        Timestamp timestamp = TimestampUnit.asTimestamp(value, fromUnit);
         return formatter.format(timestamp);
     }
 
-    public static Timestamp asTimestamp(long value) throws DataException
+    public static Timestamp asTimestamp(long value, TimestampUnit fromUnit) throws DataException
     {
-        return Timestamp.ofEpochSecond(value);
+        return TimestampUnit.asTimestamp(value, fromUnit);
     }
 
-    public static long asLong(long value) throws DataException
+    public static long asLong(long value, TimestampUnit fromUnit, TimestampUnit toUnit) throws DataException
     {
-        return value;
+        return TimestampUnit.changeUnit(value, fromUnit, toUnit);
     }
 
-    public static double asDouble(long value) throws DataException
+    public static double asDouble(long value, TimestampUnit fromUnit, TimestampUnit toUnit) throws DataException
     {
-        return (double) value;
+        return (double) TimestampUnit.changeUnit(value, fromUnit, toUnit);
     }
 }
