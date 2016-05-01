@@ -41,7 +41,7 @@ public class StringCast
     {
         try {
             Timestamp timestamp = parser.parse(value);
-            return TimestampUnit.asLong(timestamp, toUnit);
+            return TimestampUnit.toLong(timestamp, toUnit);
         }
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
@@ -51,7 +51,7 @@ public class StringCast
     {
         try {
             Timestamp timestamp = parser.parse(value);
-            return TimestampUnit.asDouble(timestamp, toUnit);
+            return TimestampUnit.toDouble(timestamp, toUnit);
         }
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);

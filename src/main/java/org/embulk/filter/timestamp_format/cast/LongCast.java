@@ -11,13 +11,13 @@ public class LongCast
 
     public static String asString(long value, TimestampUnit fromUnit, TimestampFormatter formatter) throws DataException
     {
-        Timestamp timestamp = TimestampUnit.asTimestamp(value, fromUnit);
+        Timestamp timestamp = TimestampUnit.toTimestamp(value, fromUnit);
         return formatter.format(timestamp);
     }
 
     public static Timestamp asTimestamp(long value, TimestampUnit fromUnit) throws DataException
     {
-        return TimestampUnit.asTimestamp(value, fromUnit);
+        return TimestampUnit.toTimestamp(value, fromUnit);
     }
 
     public static long asLong(long value, TimestampUnit fromUnit, TimestampUnit toUnit) throws DataException

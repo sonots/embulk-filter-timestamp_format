@@ -21,11 +21,11 @@ public class TimestampCast
 
     public static long asLong(Timestamp value, TimestampUnit toUnit) throws DataException
     {
-        return TimestampUnit.asLong(value, toUnit);
+        return TimestampUnit.toLong(value, toUnit);
     }
 
     public static double asDouble(Timestamp value, TimestampUnit toUnit) throws DataException
     {
-        return TimestampUnit.asDouble(value, toUnit);
+        return TimestampUnit.toDouble(value, toUnit);
     }
 }

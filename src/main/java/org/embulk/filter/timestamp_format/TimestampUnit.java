@@ -53,31 +53,31 @@ public enum TimestampUnit {
     public abstract int scale();
     public abstract int scaleToNano();
 
-    public static Timestamp asTimestamp(long value, TimestampUnit fromUnit)
+    public static Timestamp toTimestamp(long value, TimestampUnit fromUnit)
     {
         long nanoAdjustment = value * fromUnit.scaleToNano();
         return Timestamp.ofEpochSecond(0, nanoAdjustment);
     }
 
-    public static Timestamp asTimestamp(double value, TimestampUnit fromUnit)
+    public static Timestamp toTimestamp(double value, TimestampUnit fromUnit)
     {
         long nanoAdjustment = (long) (value * fromUnit.scaleToNano());
         return Timestamp.ofEpochSecond(0, nanoAdjustment);
     }
 
-    public static long asLong(Timestamp value, TimestampUnit toUnit)
+    public static long toLong(Timestamp value, TimestampUnit toUnit)
     {
         long epochSecond = value.getEpochSecond() * toUnit.scale();
         long nanoIntegerPart = value.getNano() / toUnit.scaleToNano();
         return epochSecond + nanoIntegerPart;
 
     }
-    public static double asDouble(Timestamp value, TimestampUnit toUnit)
+    public static double toDouble(Timestamp value, TimestampUnit toUnit)
     {
         long epochSecond = value.getEpochSecond() * toUnit.scale();
         long nanoIntegerPart = value.getNano() / toUnit.scaleToNano();
-        long nanoDecimalPart = value.getNano() - nanoIntegerPart;
-        return epochSecond + nanoIntegerPart + (nanoDecimalPart / (double) toUnit.scale());
+        long nanoDecimalPart = value.getNano() - (nanoIntegerPart * toUnit.scaleToNano());
+        return epochSecond + nanoIntegerPart + (nanoDecimalPart / (double) toUnit.scaleToNano());
     }
 
     public static long changeUnit(long value, TimestampUnit fromUnit, TimestampUnit toUnit)
