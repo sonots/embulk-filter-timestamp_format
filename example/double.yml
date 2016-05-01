@@ -10,6 +10,7 @@ in:
       - {name: double4, type: double}
 filters:
   - type: timestamp_format
+    default_from_timestamp_unit: ms
     columns:
       - {name: double1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
       - {name: double2, type: timestamp}

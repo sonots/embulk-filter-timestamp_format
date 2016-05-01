@@ -8,7 +8,7 @@ filters:
     default_from_timestamp_format: ["%Y-%m-%d %H:%M:%S %z", "%Y-%m-%d %H:%M:%S.%N %z"]
     columns:
       - {name: $.record.string1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
-      - {name: $.record.string2, type: long}
-      - {name: $.record.string3, type: double}
+      - {name: $.record.string2, type: long, to_unit: ms}
+      - {name: $.record.string3, type: double, to_unit: ms}
 out:
   type: "null"

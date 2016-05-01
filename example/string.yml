@@ -16,7 +16,7 @@ filters:
     columns:
       - {name: string1}
       - {name: string2, type: timestamp}
-      - {name: string3, type: long}
-      - {name: string4, type: double}
+      - {name: string3, type: long, to_unit: ms}
+      - {name: string4, type: double, to_unit: ms}
 out:
   type: "null"

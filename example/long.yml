@@ -10,8 +10,9 @@ in:
       - {name: long4, type: long}
 filters:
   - type: timestamp_format
+    default_from_timestamp_unit: ms
     columns:
-      - {name: long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S"}
+      - {name: long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
       - {name: long2, type: timestamp}
       - {name: long3, type: long}
       - {name: long4, type: double}
