@@ -8,6 +8,6 @@ in:
 filters:
   - type: timestamp_format
     columns:
-      - {name: timestamp, from_format: ["yyyy-MM-dd hh:mm:ss.SSS"], to_format: "yyyy-MM-dd"}
+      - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N"], to_format: "yyyy-MM-dd"}
 out:
   type: "null"
