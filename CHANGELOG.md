@@ -1,3 +1,11 @@
+# 0.1.7 (2016-05-09)
+
+Enhancements:
+
+* Use Joda-Time DateTimeFormat instead of SimpleDateFormat for Java timestamp parser/formatter
+  * to be thread-safe
+  * to fix ss.SSS resolves 1.1 as 1.001 seconds wrongly
+
 # 0.1.6 (2016-05-01)
 
 Enhancements:
