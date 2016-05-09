@@ -14,14 +14,16 @@ import org.embulk.spi.time.Timestamp;
 import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
 
 import org.embulk.spi.time.TimestampParseException;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormatter;
 import org.jruby.embed.ScriptingContainer;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Locale;
+
+import org.joda.time.format.DateTimeFormat;
 
 public class TimestampParser {
     public interface Task {
@@ -44,8 +46,8 @@ public class TimestampParser {
         Optional<List<String>> getFromFormat();
     }
 
-    private final List<JRubyTimeParserHelper> jrubyParserList = new ArrayList<JRubyTimeParserHelper>();
-    private final List<SimpleDateFormat> javaParserList = new ArrayList<SimpleDateFormat>();
+    private final List<JRubyTimeParserHelper> jrubyParserList = new ArrayList<>();
+    private final List<DateTimeFormatter> javaParserList = new ArrayList<>();
     private final DateTimeZone defaultFromTimeZone;
 
     TimestampParser(PluginTask task) {
@@ -60,14 +62,14 @@ public class TimestampParser {
 
     public TimestampParser(ScriptingContainer jruby, List<String> formatList, DateTimeZone defaultFromTimeZone) {
         JRubyTimeParserHelperFactory helperFactory = (JRubyTimeParserHelperFactory) jruby.runScriptlet("Embulk::Java::TimeParserHelper::Factory.new");
+
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
                 JRubyTimeParserHelper helper = (JRubyTimeParserHelper) helperFactory.newInstance(format, 1970, 1, 1, 0, 0, 0, 0);  // TODO default time zone
                 this.jrubyParserList.add(helper);
             } else {
-                SimpleDateFormat parser = new SimpleDateFormat(format);
-                parser.setTimeZone(defaultFromTimeZone.toTimeZone());
+                DateTimeFormatter parser = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(defaultFromTimeZone);
                 this.javaParserList.add(parser);
             }
         }
@@ -78,7 +80,7 @@ public class TimestampParser {
         return defaultFromTimeZone;
     }
 
-    public Timestamp parse(String text) throws TimestampParseException, ParseException {
+    public Timestamp parse(String text) throws TimestampParseException, IllegalArgumentException {
         if (!jrubyParserList.isEmpty()) {
             return jrubyParse(text);
         } else if (!javaParserList.isEmpty()) {
@@ -124,21 +126,22 @@ public class TimestampParser {
         return Timestamp.ofEpochSecond(sec, usec * 1000);
     }
 
-    private Timestamp javaParse(String text) throws ParseException {
-        long msec = -1;
-        ParseException exception = null;
+    private Timestamp javaParse(String text) throws IllegalArgumentException {
+        DateTime dateTime = null;
+        IllegalArgumentException exception = null;
 
-        for (SimpleDateFormat parser : javaParserList) {
+        for (DateTimeFormatter parser : javaParserList) {
             try {
-                msec = parser.parse(text).getTime(); // NOTE: milli second resolution
+                dateTime = parser.parseDateTime(text);
                 break;
-            } catch (ParseException ex) {
+            } catch (IllegalArgumentException ex) {
                 exception = ex;
             }
         }
-        if (msec == -1) {
+        if (dateTime == null) {
             throw exception;
         }
+        long msec = dateTime.getMillis(); // NOTE: milli second resolution
 
         long nanoAdjustment = msec * 1000000;
         return Timestamp.ofEpochSecond(0, nanoAdjustment);

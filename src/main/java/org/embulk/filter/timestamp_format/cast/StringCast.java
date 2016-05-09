@@ -7,8 +7,6 @@ import org.embulk.spi.DataException;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.time.TimestampParseException;
 
-import java.text.ParseException;
-
 public class StringCast
 {
     private StringCast() {}
@@ -27,7 +25,7 @@ public class StringCast
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
-        catch (ParseException ex) {
+        catch (IllegalArgumentException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
     }
@@ -40,7 +38,7 @@ public class StringCast
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
-        catch (ParseException ex) {
+        catch (IllegalArgumentException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
     }
@@ -54,7 +52,7 @@ public class StringCast
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
-        catch (ParseException ex) {
+        catch (IllegalArgumentException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
     }
@@ -68,7 +66,7 @@ public class StringCast
         catch (TimestampParseException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
-        catch (ParseException ex) {
+        catch (IllegalArgumentException ex) {
             throw new DataException(buildErrorMessage(value), ex);
         }
     }

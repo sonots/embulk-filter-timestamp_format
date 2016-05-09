@@ -65,7 +65,7 @@ See [./example](./example) for more examples.
 ## JRuby Timestamp Parser/Formatter Performance Issue
 
 Embulk's timestamp parser/formatter originally uses jruby implementation, but it is slow.
-To improve performance, this plugin also supports Java's [SimpleDateFormat](https://docs.oracle.com/javase/jp/6/api/java/text/SimpleDateFormat.html) format as:
+To improve performance, this plugin also supports Java's Joda-Time [DateTimeFormat](http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html) format as:
 
 ```yaml
 in:
@@ -101,8 +101,7 @@ Benchmark test sets are available at [./bench](./bench).  In my environment (Mac
 
 **NOTICE:**
 
-* JRuby parser has micro second resolution, but Java parser (SimpleDateFormat) has only milli second resolution
-* `S` requires three digits always. For example, `yyyy-MM-dd HH:mm::ss.S` for `2015-12-17 01:02:03.1` gives 001 milli seconds wrongly, but it is the specification of SimpleDateFormat.
+* JRuby parser has micro second resolution, but Java parser (Joda-Time) has only milli second resolution
 
 ## ToDo
 
