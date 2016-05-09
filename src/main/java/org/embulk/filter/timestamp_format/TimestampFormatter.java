@@ -15,9 +15,9 @@ import org.joda.time.DateTimeZone;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.util.RubyDateFormat;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class TimestampFormatter
 {
@@ -44,7 +44,7 @@ public class TimestampFormatter
     }
 
     private final RubyDateFormat jrubyFormatter;
-    private final SimpleDateFormat javaFormatter;
+    private final DateTimeFormatter javaFormatter;
     private final DateTimeZone toTimeZone;
 
     public TimestampFormatter(PluginTask task, Optional<? extends TimestampColumnOption> columnOption)
@@ -67,8 +67,7 @@ public class TimestampFormatter
         }
         else {
             this.jrubyFormatter = null;
-            this.javaFormatter = new SimpleDateFormat(format, Locale.ENGLISH);
-            javaFormatter.setTimeZone(toTimeZone.toTimeZone());
+            this.javaFormatter = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(toTimeZone);
         }
     }
 
@@ -108,6 +107,6 @@ public class TimestampFormatter
     private String javaFormat(Timestamp value)
     {
         long milliSecond = value.getEpochSecond() * 1000 + value.getNano() / 1000000;
-        return javaFormatter.format(milliSecond);
+        return javaFormatter.print(milliSecond);
     }
 }
