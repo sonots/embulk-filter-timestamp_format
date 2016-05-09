@@ -102,6 +102,7 @@ Benchmark test sets are available at [./bench](./bench).  In my environment (Mac
 **NOTICE:**
 
 * JRuby parser has micro second resolution, but Java parser (Joda-Time) has only milli second resolution
+  * Java8's DateTimeFormatter has nano second resolution, but embulk supports java7 too for hadoop
 
 ## ToDo
 
