@@ -94,8 +94,10 @@ If format strings contain `%`, jruby parser/formatter is used. Otherwirse, java 
 
 Benchmark test sets are available at [./bench](./bench).  In my environment (Mac Book Pro), for 1000000 timestamps:
 
-* jruby parser/formatter: 65.06s
-* java parser/formatter: 1.3s
+* java parser / java formatter: 1.3s
+* java parser / jruby formatter: 1.4s
+* jruby parser / java formatter: 64.52s
+* jruby parser / jruby formatter: 65.06s
 
 **NOTICE:**
 
