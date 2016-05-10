@@ -111,10 +111,11 @@ yyyy-MM-dd HH:mm:ss.nnnnnnnnn z
 
 This plugin finds places of nano second from texts with regular expression `\.(\d+)`.
 
-For formatter, you can use jruby formatter as
+For formatter, you can use `nnnnnnnnn` for nano and `nnnnnn` for micro as
 
 ```
-%Y-%m-%d %H:%M:%S.%N %z
+yyyy-MM-dd HH:mm:ss.nnnnnnnnn z
+yyyy-MM-dd HH:mm:ss.nnnnnn z
 ```
 
 ## ToDo

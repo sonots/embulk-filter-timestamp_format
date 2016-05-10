@@ -74,7 +74,7 @@ public class TimestampParser {
                 this.jrubyParserList.add(helper);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time
-                if (format.contains("n")) {
+                if (format.contains("nnnnnnnnn")) {
                     this.handleNanoResolutionList.add(true);
                     String newFormat = format.replaceAll("n", "S");
                     DateTimeFormatter parser = DateTimeFormat.forPattern(newFormat).withLocale(Locale.ENGLISH).withZone(defaultFromTimeZone);

@@ -16,6 +16,9 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.util.RubyDateFormat;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -45,6 +48,8 @@ public class TimestampFormatter
 
     private final RubyDateFormat jrubyFormatter;
     private final DateTimeFormatter javaFormatter;
+    private boolean handleNanoResolution = false;
+    private boolean handleMicroResolution = false;
     private final DateTimeZone toTimeZone;
 
     public TimestampFormatter(PluginTask task, Optional<? extends TimestampColumnOption> columnOption)
@@ -62,12 +67,24 @@ public class TimestampFormatter
     {
         this.toTimeZone = toTimeZone;
         if (format.contains("%")) {
-            this.jrubyFormatter = new RubyDateFormat(format, Locale.ENGLISH, true);
             this.javaFormatter = null;
+            this.jrubyFormatter = new RubyDateFormat(format, Locale.ENGLISH, true);
         }
         else {
             this.jrubyFormatter = null;
-            this.javaFormatter = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(toTimeZone);
+            if (format.contains("nnnnnnnnn")) {
+                this.handleNanoResolution = true;
+                String newFormat = format.replaceAll("nnnnnnnnn", "'%09d'");
+                this.javaFormatter = DateTimeFormat.forPattern(newFormat).withLocale(Locale.ENGLISH).withZone(toTimeZone);
+            }
+            else if (format.contains("nnnnnn")) {
+                this.handleMicroResolution = true;
+                String newFormat = format.replaceAll("nnnnnn", "'%06d'");
+                this.javaFormatter = DateTimeFormat.forPattern(newFormat).withLocale(Locale.ENGLISH).withZone(toTimeZone);
+            }
+            else {
+                this.javaFormatter = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(toTimeZone);
+            }
         }
     }
 
@@ -106,7 +123,17 @@ public class TimestampFormatter
 
     private String javaFormat(Timestamp value)
     {
-        long milliSecond = value.getEpochSecond() * 1000 + value.getNano() / 1000000;
-        return javaFormatter.print(milliSecond);
+        if (handleNanoResolution) {
+            String datetimeFormatted = javaFormatter.print(value.getEpochSecond() * 1000);
+            return String.format(datetimeFormatted, value.getNano());
+        }
+        else if (handleMicroResolution) {
+            String datetimeFormatted = javaFormatter.print(value.getEpochSecond() * 1000);
+            return String.format(datetimeFormatted, value.getNano() / 1000);
+        }
+        else {
+            long milliSecond = value.getEpochSecond() * 1000 + value.getNano() / 1000000;
+            return javaFormatter.print(milliSecond);
+        }
     }
 }
