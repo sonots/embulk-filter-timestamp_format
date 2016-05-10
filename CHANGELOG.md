@@ -1,3 +1,9 @@
+# 0.1.9 (2016-05-10)
+
+Enhancements:
+
+* Support nano second resolution for Java formatter
+
 # 0.1.8 (2016-05-10)
 
 Enhancements:
