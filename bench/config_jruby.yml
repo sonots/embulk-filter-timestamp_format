@@ -7,6 +7,7 @@ in:
       - {name: timestamp, type: string}
 filters:
   - type: timestamp_format
+    stop_on_invalid_record: true
     columns:
       - {name: timestamp, from_format: ["%Y-%m-%d %H:%M:%S.%N"], to_format: "%Y-%m-%d"}
 
