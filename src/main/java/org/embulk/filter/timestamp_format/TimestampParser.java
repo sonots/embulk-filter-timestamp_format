@@ -22,6 +22,8 @@ import org.jruby.embed.ScriptingContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.joda.time.format.DateTimeFormat;
 
@@ -48,7 +50,9 @@ public class TimestampParser {
 
     private final List<JRubyTimeParserHelper> jrubyParserList = new ArrayList<>();
     private final List<DateTimeFormatter> javaParserList = new ArrayList<>();
+    private final List<Boolean> handleNanoResolutionList = new ArrayList<>();
     private final DateTimeZone defaultFromTimeZone;
+    private final Pattern nanoSecPattern = Pattern.compile("\\.(\\d+)");
 
     TimestampParser(PluginTask task) {
         this(task.getJRuby(), task.getDefaultFromTimestampFormat(), task.getDefaultFromTimeZone());
@@ -69,8 +73,18 @@ public class TimestampParser {
                 JRubyTimeParserHelper helper = (JRubyTimeParserHelper) helperFactory.newInstance(format, 1970, 1, 1, 0, 0, 0, 0);  // TODO default time zone
                 this.jrubyParserList.add(helper);
             } else {
-                DateTimeFormatter parser = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(defaultFromTimeZone);
-                this.javaParserList.add(parser);
+                // special treatment for nano resolution. n is not originally supported by Joda-Time
+                if (format.contains("n")) {
+                    this.handleNanoResolutionList.add(true);
+                    String newFormat = format.replaceAll("n", "S");
+                    DateTimeFormatter parser = DateTimeFormat.forPattern(newFormat).withLocale(Locale.ENGLISH).withZone(defaultFromTimeZone);
+                    this.javaParserList.add(parser);
+                }
+                else {
+                    this.handleNanoResolutionList.add(false);
+                    DateTimeFormatter parser = DateTimeFormat.forPattern(format).withLocale(Locale.ENGLISH).withZone(defaultFromTimeZone);
+                    this.javaParserList.add(parser);
+                }
             }
         }
         this.defaultFromTimeZone = defaultFromTimeZone;
@@ -127,23 +141,48 @@ public class TimestampParser {
     }
 
     private Timestamp javaParse(String text) throws IllegalArgumentException {
-        DateTime dateTime = null;
+        long msec = -1;
+        long nsec = -1;
+        Boolean handleNanoResolution = false;
         IllegalArgumentException exception = null;
 
-        for (DateTimeFormatter parser : javaParserList) {
+        for (int i = 0; i < javaParserList.size(); i++) {
+            DateTimeFormatter parser = javaParserList.get(i);
+            handleNanoResolution = handleNanoResolutionList.get(i);
             try {
-                dateTime = parser.parseDateTime(text);
+                if (handleNanoResolution) {
+                    nsec = parseNano(text);
+                }
+                DateTime dateTime = parser.parseDateTime(text);
+                msec = dateTime.getMillis(); // NOTE: milli second resolution
                 break;
             } catch (IllegalArgumentException ex) {
                 exception = ex;
             }
         }
-        if (dateTime == null) {
+        if (msec == -1) {
             throw exception;
         }
-        long msec = dateTime.getMillis(); // NOTE: milli second resolution
 
-        long nanoAdjustment = msec * 1000000;
-        return Timestamp.ofEpochSecond(0, nanoAdjustment);
+        if (handleNanoResolution) {
+            long sec = msec / 1000;
+            return Timestamp.ofEpochSecond(sec, nsec);
+        }
+        else {
+            long nanoAdjustment = msec * 1000000;
+            return Timestamp.ofEpochSecond(0, nanoAdjustment);
+        }
+    }
+
+    private long parseNano(String text) {
+        long nsec = -1;
+        Matcher m = nanoSecPattern.matcher(text);
+        if (m.find()) {
+            //String nanoStr = String.format("%-9s", m.group(1)).replace(" ", "0");
+            //nsec = Long.parseLong(nanoStr);
+            String nanoStr = m.group(1);
+            nsec = Long.parseLong(nanoStr) * (long) Math.pow(10, 9 - nanoStr.length());
+        }
+        return nsec;
     }
 }

@@ -99,10 +99,23 @@ Benchmark test sets are available at [./bench](./bench).  In my environment (Mac
 * jruby parser / java formatter: 64.52s
 * jruby parser / jruby formatter: 65.06s
 
-**NOTICE:**
+## Nano Resolution
 
-* JRuby parser has micro second resolution, but Java parser (Joda-Time) has only milli second resolution
-  * Java8's DateTimeFormatter has nano second resolution, but embulk supports java7 too for hadoop
+JRuby parser has micro second resolution. Java (Joda-Time) parser has milli second resolution (although Java8's DateTimeFormatter supports nano second resolution)
+
+Nano second resolution is partially supported by this plugin itself. Use parser format `nnnnnnnnn` for Java parser as
+
+```
+yyyy-MM-dd HH:mm:ss.nnnnnnnnn z
+```
+
+This plugin finds places of nano second from texts with regular expression `\.(\d+)`.
+
+For formatter, you can use jruby formatter as
+
+```
+%Y-%m-%d %H:%M:%S.%N %z
+```
 
 ## ToDo
 
