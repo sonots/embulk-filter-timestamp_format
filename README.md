@@ -101,7 +101,7 @@ Benchmark test sets are available at [./bench](./bench).  In my environment (Mac
 
 ## Nano Resolution
 
-JRuby parser has micro second resolution. Java (Joda-Time) parser has milli second resolution (although Java8's DateTimeFormatter supports nano second resolution)
+JRuby parser has micro second resolution. Java (Joda-Time) parser has milli second resolution.
 
 Nano second resolution is partially supported by this plugin itself. Use parser format `nnnnnnnnn` for Java parser as
 
@@ -117,6 +117,8 @@ For formatter, you can use `nnnnnnnnn` for nano and `nnnnnn` for micro as
 yyyy-MM-dd HH:mm:ss.nnnnnnnnn z
 yyyy-MM-dd HH:mm:ss.nnnnnn z
 ```
+
+FYI: Java8's DateTimeFormatter supports nano second resolution, but we can not use it because embulk supports Java7.
 
 ## ToDo
 
