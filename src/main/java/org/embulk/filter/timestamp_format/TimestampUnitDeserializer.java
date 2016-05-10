@@ -21,14 +21,17 @@ public class TimestampUnitDeserializer
         builder.put("MilliSecond", TimestampUnit.MilliSecond);
         builder.put("millisecond", TimestampUnit.MilliSecond);
         builder.put("milli_second", TimestampUnit.MilliSecond);
+        builder.put("milli", TimestampUnit.MilliSecond);
         builder.put("ms", TimestampUnit.MilliSecond);
         builder.put("MicroSecond", TimestampUnit.MicroSecond);
         builder.put("microsecond", TimestampUnit.MicroSecond);
         builder.put("micro_second", TimestampUnit.MicroSecond);
+        builder.put("micro", TimestampUnit.MicroSecond);
         builder.put("us", TimestampUnit.MicroSecond);
         builder.put("NanoSecond", TimestampUnit.NanoSecond);
         builder.put("nanosecond", TimestampUnit.NanoSecond);
         builder.put("nano_second", TimestampUnit.NanoSecond);
+        builder.put("nano", TimestampUnit.NanoSecond);
         builder.put("ns", TimestampUnit.NanoSecond);
         stringToTimestampUnitMap = builder.build();
     }
