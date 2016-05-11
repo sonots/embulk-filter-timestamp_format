@@ -13,7 +13,7 @@ filters:
     default_from_timezone: "Asia/Taipei"
     default_from_timestamp_format: ["yyyy-MM-dd", "yyyy-MM-dd z", "yyyy-MM-dd HH:mm:ss.nnnnnnnnn z", "yyyy-MM-dd HH:mm:ss z", "yyyy-MM-dd HH:mm:ss"]
     default_to_timezone: "Asia/Taipei"
-    default_to_timestamp_format: "yyyy-MM-dd HH:mm:ss.nnnnnnnn"
+    default_to_timestamp_format: "yyyy-MM-dd HH:mm:ss.nnnnnn Z"
     columns:
       - {name: string1}
       - {name: string2, type: timestamp}
