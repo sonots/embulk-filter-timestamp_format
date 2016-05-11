@@ -62,9 +62,9 @@ Output will be as:
 
 See [./example](./example) for more examples.
 
-## JRuby Timestamp Parser/Formatter Performance Issue
+## JRuby Timestamp Parser Performance Issue
 
-Embulk's timestamp parser/formatter originally uses jruby implementation, but it is slow.
+Embulk's timestamp parser originally uses jruby implementation, but it is slow.
 To improve performance, this plugin also supports Java's Joda-Time [DateTimeFormat](http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html) format as:
 
 ```yaml
@@ -98,6 +98,8 @@ Benchmark test sets are available at [./bench](./bench).  In my environment (Mac
 * java parser / jruby formatter: 1.4s
 * jruby parser / java formatter: 64.52s
 * jruby parser / jruby formatter: 65.06s
+
+JRuby parser is slow, but JRuby formatter is not so slow.
 
 ## Nano Resolution
 
