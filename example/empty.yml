@@ -1,0 +1,9 @@
+in:
+  type: file
+  path_prefix: example/example.jsonl
+  parser:
+    type: json
+filters:
+  - type: timestamp_format
+out:
+  type: "null"
