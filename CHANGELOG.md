@@ -1,3 +1,9 @@
+# 0.2.0 (2016-05-13)
+
+Enhancements:
+
+* Add `timestamp_format: auto_java` option (experimental)
+
 # 0.1.9 (2016-05-10)
 
 Enhancements:
