@@ -91,9 +91,9 @@ out:
 
 If format strings contain `%`, jruby parser/formatter is used. Otherwirse, java parser/formatter is used
 
-**Auto Java timestamp format conversion** (experimental)
+**Automatic Conversion of Ruby Timestamp Format to Java Timestamp Format** (experimental)
 
-If you configure `timestamp_parser: auto_java`, this plugin tries to convert ruby format into java format to use faster java timestamp parser.
+If you configure `timestamp_parser: auto_java`, this plugin tries to convert ruby format into java format automatically to use faster java timestamp parser.
 
 **COMPARISON:**
 
