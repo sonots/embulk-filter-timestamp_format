@@ -58,7 +58,7 @@ public class TestTimestampFormatConverter
     }
 
     @Test
-    public void testToJavaFormats()
+    public void testToJavaFormat()
     {
         for(Map.Entry<String, String> entry : TimestampFormatConverter.RUBY_TO_JAVA_FORMAT_TABLE.entrySet()) {
             String rubyFormat = "%-2" + entry.getKey();
@@ -68,7 +68,7 @@ public class TestTimestampFormatConverter
     }
 
     @Test
-    public void testToJavaFormat()
+    public void testToJavaFormats()
     {
         {
             String rubyFormat = "%Y-%m-%d %H:%M:%S.%6N %:z";

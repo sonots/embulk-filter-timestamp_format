@@ -95,7 +95,7 @@ public class TimestampFormatConverter
         RUBY_TO_JAVA_FORMAT_TABLE.put("y", "yy");
         RUBY_TO_JAVA_FORMAT_TABLE.put("Z", "z");
         RUBY_TO_JAVA_FORMAT_TABLE.put("z", "Z");
-        RUBY_TO_JAVA_FORMAT_TABLE.put("%", "%");
+        //RUBY_TO_JAVA_FORMAT_TABLE.put("%", "");
 
         String[] array = RUBY_TO_JAVA_FORMAT_TABLE.keySet().toArray(new String[0]);
         StringBuilder keyPatternBuilder = new StringBuilder(array[0]);
