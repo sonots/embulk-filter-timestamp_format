@@ -21,6 +21,7 @@ import org.joda.time.DateTimeZone;
 import org.msgpack.value.Value;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -69,7 +70,24 @@ public class ColumnCaster
     {
         DateTimeZone timezone = columnConfig.getFromTimeZone().or(task.getDefaultFromTimeZone());
         List<String> formatList = columnConfig.getFromFormat().or(task.getDefaultFromTimestampFormat());
-        return new TimestampParser(task.getJRuby(), formatList, timezone);
+        List<String> newFormatList = new ArrayList<>(formatList);
+        String name = columnConfig.getName();
+        if (task.getTimeStampParser().equals("auto_java")) {
+            for (int i = 0; i < formatList.size(); i++) {
+                String format = formatList.get(i);
+                if (!format.contains("%")) {
+                    continue;
+                }
+                String javaFormat = TimestampFormatConverter.toJavaFormat(format);
+                if (javaFormat == null) {
+                    logger.info(String.format("%s: Failed to convert ruby parser to java parser: \"%s\", Use ruby parser as is", name, format));
+                } else {
+                    logger.debug(String.format("%s: Convert ruby parser \"%s\" to java parser \"%s\"", name, format, javaFormat));
+                    newFormatList.set(i, javaFormat);
+                }
+            }
+        }
+        return new TimestampParser(task.getJRuby(), newFormatList, timezone);
     }
 
     private void buildTimestampFormatterMap()

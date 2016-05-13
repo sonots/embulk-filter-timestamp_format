@@ -1,0 +1,24 @@
+in:
+  type: file
+  path_prefix: example/string.csv
+  parser:
+    type: csv
+    columns:
+      - {name: string1, type: string}
+      - {name: string2, type: string}
+      - {name: string3, type: string}
+      - {name: string4, type: string}
+filters:
+  - type: timestamp_format
+    default_from_timezone: "Asia/Taipei"
+    default_from_timestamp_format: ["%Y-%m-%d", "%Y-%m-%d %Z", "%Y-%m-%d %H:%M:%S.%N %Z", "%Y-%m-%d %H:%M:%S %Z", "%Y-%m-%d %H:%M:%S"]
+    default_to_timezone: "Asia/Taipei"
+    default_to_timestamp_format: "%Y-%m-%d %H:%M:%S.%N"
+    timestamp_parser: auto_java
+    columns:
+      - {name: string1}
+      - {name: string2, type: timestamp}
+      - {name: string3, type: long, to_unit: ms}
+      - {name: string4, type: double, to_unit: ms}
+out:
+  type: "null"

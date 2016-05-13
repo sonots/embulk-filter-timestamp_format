@@ -111,6 +111,7 @@ public class TimestampFormatConverter
         NON_IDENTIFIER_PATTERN = Pattern.compile("(^|\\s)([^%\\s]\\S*)");
     }
 
+    // @return returns null if appropriate java format is not available
     public static String toJavaFormat(String rubyFormat)
     {
         String quotedFormat = quoteFormat(rubyFormat);
@@ -122,7 +123,14 @@ public class TimestampFormatConverter
             match.appendReplacement(buf, replacement);
         }
         match.appendTail(buf);
-        return buf.toString();
+        String javaFormat = buf.toString();
+
+        if (javaFormat.contains("%")) {
+            return null; // give up to use java format
+        }
+        else {
+            return javaFormat;
+        }
     }
 
     private static String quoteFormat(String rubyFormat)
