@@ -19,7 +19,6 @@ import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
-import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.BooleanType;
 import org.embulk.spi.type.JsonType;
 import org.embulk.spi.type.TimestampType;
@@ -65,6 +64,10 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         @Config("stop_on_invalid_record")
         @ConfigDefault("false")
         Boolean getStopOnInvalidRecord();
+
+        @Config("timestamp_parser")
+        @ConfigDefault("\"auto\"") // or auto_java
+        String getTimeStampParser();
 
         @Config("default_from_timestamp_unit")
         @ConfigDefault("\"second\"")

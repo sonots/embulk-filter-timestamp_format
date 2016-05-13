@@ -22,6 +22,7 @@ A filter plugin for Embulk to change timestamp format
 - **default_from_timestamp_unit**: default time unit such as `sec` (for second), `ms` (for milli second), `us` (for micro second), `ns` (for nano second) for the input unixtimestamp (string, default is `second`)
 - **default_to_timestamp_unit**: default time unit such as `sec` (for second), `ms` (for milli second), `us` (for micro second), `ns` (for nano second) for the output unixtimestamp (string, default is `second`)
 - **stop_on_invalid_record**: stop bulk load transaction if a invalid record is found (boolean, default is `false`)
+- **timestamp_parser** (experimental): set `auto_java` to try to convert ruby format to java format to use faster java timestamp parser (string, default is `auto`)
 
 ## Example
 
@@ -89,6 +90,10 @@ out:
 ```
 
 If format strings contain `%`, jruby parser/formatter is used. Otherwirse, java parser/formatter is used
+
+**Auto Java timestamp format conversion** (experimental)
+
+If you configure `timestamp_parser: auto_java`, this plugin tries to convert ruby format into java format to use faster java timestamp parser.
 
 **COMPARISON:**
 
