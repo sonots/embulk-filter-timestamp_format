@@ -60,6 +60,7 @@ public class JsonVisitor
                     partialPath.append(".").append(arrayParts[0]);
                     this.shouldVisitSet.add(partialPath.toString());
                     for (int j = 1; j < arrayParts.length; j++) {
+                        // Support both [0] and [*]
                         partialPath.append("[").append(arrayParts[j]);
                         this.shouldVisitSet.add(partialPath.toString());
                     }
@@ -88,6 +89,9 @@ public class JsonVisitor
             Value[] newValue = new Value[size];
             for (int i = 0; i < size; i++) {
                 String k = new StringBuilder(jsonPath).append("[").append(Integer.toString(i)).append("]").toString();
+                if (!shouldVisit(k)) {
+                    k = new StringBuilder(jsonPath).append("[*]").toString(); // try [*] too
+                }
                 Value v = arrayValue.get(i);
                 newValue[i] = visit(k, v);
             }

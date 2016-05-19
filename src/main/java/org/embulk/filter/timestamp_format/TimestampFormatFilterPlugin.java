@@ -101,7 +101,8 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
             String name = columnConfig.getName();
             if (name.startsWith("$.")) {
                 String firstName = name.split("\\.", 3)[1]; // check only top level column name
-                inputSchema.lookupColumn(firstName);
+                String firstNameWithoutArray = firstName.split("\\[")[0];
+                inputSchema.lookupColumn(firstNameWithoutArray);
             }
             else {
                 inputSchema.lookupColumn(name);
