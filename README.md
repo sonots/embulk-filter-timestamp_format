@@ -63,6 +63,18 @@ Output will be as:
 
 See [./example](./example) for more examples.
 
+## JSONPath (like) name
+
+For `type: json` column, you can specify [JSONPath](http://goessner.net/articles/JsonPath/) for column's name as:
+
+```
+$.payload.key1
+$.payload.array[0]
+$.payload.array[*]
+```
+
+NOTE: JSONPath syntax is not fully supported
+
 ## JRuby Timestamp Parser Performance Issue
 
 Embulk's timestamp parser originally uses jruby implementation, but it is slow.

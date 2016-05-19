@@ -1,3 +1,9 @@
+# 0.2.1 (2016-05-19)
+
+Enhancements:
+
+* Support JSONPath array wildcard
+
 # 0.2.0 (2016-05-13)
 
 Enhancements:
