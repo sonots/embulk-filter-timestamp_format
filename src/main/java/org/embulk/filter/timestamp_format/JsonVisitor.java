@@ -78,9 +78,9 @@ public class JsonVisitor
         return shouldVisitSet.contains(jsonPath);
     }
 
-    public Value visit(String jsonPath, Value value)
+    public Value visit(String rootPath, Value value)
     {
-        if (!shouldVisit(jsonPath)) {
+        if (!shouldVisit(rootPath)) {
             return value;
         }
         if (value.isArrayValue()) {
@@ -88,9 +88,9 @@ public class JsonVisitor
             int size = arrayValue.size();
             Value[] newValue = new Value[size];
             for (int i = 0; i < size; i++) {
-                String k = new StringBuilder(jsonPath).append("[").append(Integer.toString(i)).append("]").toString();
+                String k = new StringBuilder(rootPath).append("[").append(Integer.toString(i)).append("]").toString();
                 if (!shouldVisit(k)) {
-                    k = new StringBuilder(jsonPath).append("[*]").toString(); // try [*] too
+                    k = new StringBuilder(rootPath).append("[*]").toString(); // try [*] too
                 }
                 Value v = arrayValue.get(i);
                 newValue[i] = visit(k, v);
@@ -105,7 +105,7 @@ public class JsonVisitor
             for (Map.Entry<Value, Value> entry : mapValue.entrySet()) {
                 Value k = entry.getKey();
                 Value v = entry.getValue();
-                String newPath = new StringBuilder(jsonPath).append(".").append(k.asStringValue().asString()).toString();
+                String newPath = new StringBuilder(rootPath).append(".").append(k.asStringValue().asString()).toString();
                 Value r = visit(newPath, v);
                 newValue[i++] = k;
                 newValue[i++] = r;
@@ -113,15 +113,15 @@ public class JsonVisitor
             return ValueFactory.newMap(newValue, true);
         }
         else if (value.isIntegerValue()) {
-            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
+            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(rootPath);
             return jsonCaster.fromLong(columnConfig, value.asIntegerValue());
         }
         else if (value.isFloatValue()) {
-            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
+            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(rootPath);
             return jsonCaster.fromDouble(columnConfig, value.asFloatValue());
         }
         else if (value.isStringValue()) {
-            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(jsonPath);
+            ColumnConfig columnConfig = jsonPathColumnConfigMap.get(rootPath);
             return jsonCaster.fromString(columnConfig, value.asStringValue());
         }
         else {
