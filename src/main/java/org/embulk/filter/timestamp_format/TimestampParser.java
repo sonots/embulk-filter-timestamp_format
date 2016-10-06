@@ -135,9 +135,6 @@ public class TimestampParser {
 
         long localSec = localUsec / 1000000;
         long usec = localUsec % 1000000;
-        if (usec < 0) {
-            usec += 1000000;
-        }
         long sec = timeZone.convertLocalToUTC(localSec * 1000, false) / 1000;
 
         return Timestamp.ofEpochSecond(sec, usec * 1000);
