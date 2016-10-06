@@ -1,8 +1,6 @@
 # 0.2.2 (2016-10-07)
 
-Fixes:
-
-* Fix for date is less than 1970-01-01, that is, unix timestamp is negative
+yanked
 
 # 0.2.1 (2016-05-19)
 
