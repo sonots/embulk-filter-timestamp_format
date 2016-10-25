@@ -1,3 +1,9 @@
+# 0.2.3 (2016-10-25)
+
+Fixes:
+
+* Fix the case of top-level array such as `$.array_timestamp[*]`
+
 # 0.2.2 (2016-10-07)
 
 yanked
