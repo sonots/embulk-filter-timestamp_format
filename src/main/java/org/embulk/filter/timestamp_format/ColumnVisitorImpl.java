@@ -50,7 +50,8 @@ public class ColumnVisitorImpl
             String name = columnConfig.getName();
             if (name.startsWith("$.")) {
                 String firstName = name.split("\\.", 3)[1]; // check only top level column name
-                shouldCastSet.add(firstName);
+                String firstPartName = firstName.split("\\[")[0];
+                shouldCastSet.add(firstPartName);
                 continue;
             }
             shouldCastSet.add(name);
