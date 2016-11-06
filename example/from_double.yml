@@ -1,6 +1,6 @@
 in:
   type: file
-  path_prefix: example/double.csv
+  path_prefix: example/from_double.csv
   parser:
     type: csv
     columns:
@@ -8,13 +8,17 @@ in:
       - {name: double2, type: double}
       - {name: double3, type: double}
       - {name: double4, type: double}
+      - {name: record,  type: json}
 filters:
   - type: timestamp_format
     default_from_timestamp_unit: ms
     columns:
       - {name: double1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
-      - {name: double2, type: timestamp}
-      - {name: double3, type: long}
-      - {name: double4, type: double}
+      - {name: double2, type: long}
+      - {name: double3, type: double}
+      - {name: double4, type: timestamp}
+      - {name: $.record.double1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
+      - {name: $.record.double2, type: long}
+      - {name: $.record.double3, type: double}
 out:
   type: "null"

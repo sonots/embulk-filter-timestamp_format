@@ -1,6 +1,6 @@
 in:
   type: file
-  path_prefix: example/string.csv
+  path_prefix: example/from_string.csv
   parser:
     type: csv
     columns:
@@ -8,6 +8,7 @@ in:
       - {name: string2, type: string}
       - {name: string3, type: string}
       - {name: string4, type: string}
+      - {name: record,  type: json}
 filters:
   - type: timestamp_format
     default_from_timezone: "Asia/Taipei"
@@ -16,8 +17,11 @@ filters:
     default_to_timestamp_format: "yyyy-MM-dd HH:mm:ss.nnnnnn Z"
     columns:
       - {name: string1}
-      - {name: string2, type: timestamp}
-      - {name: string3, type: long, to_unit: ms}
-      - {name: string4, type: double, to_unit: ms}
+      - {name: string2, type: long, to_unit: ms}
+      - {name: string3, type: double, to_unit: ms}
+      - {name: string4, type: timestamp}
+      - {name: $.record.string1}
+      - {name: $.record.string2, type: long, to_unit: ms}
+      - {name: $.record.string3, type: double, to_unit: ms}
 out:
   type: "null"

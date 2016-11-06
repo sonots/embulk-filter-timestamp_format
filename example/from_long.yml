@@ -1,6 +1,6 @@
 in:
   type: file
-  path_prefix: example/long.csv
+  path_prefix: example/from_long.csv
   parser:
     type: csv
     columns:
@@ -8,13 +8,17 @@ in:
       - {name: long2, type: long}
       - {name: long3, type: long}
       - {name: long4, type: long}
+      - {name: record, type: json}
 filters:
   - type: timestamp_format
     default_from_timestamp_unit: ms
     columns:
       - {name: long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
-      - {name: long2, type: timestamp}
-      - {name: long3, type: long}
-      - {name: long4, type: double}
+      - {name: long2, type: long}
+      - {name: long3, type: double}
+      - {name: long4, type: timestamp}
+      - {name: $.record.long1, to_timezone: "Asia/Tokyo", to_format: "%Y-%m-%d %H:%M:%S.%N"}
+      - {name: $.record.long2, type: long}
+      - {name: $.record.long3, type: double}
 out:
   type: "null"

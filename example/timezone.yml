@@ -1,0 +1,16 @@
+in:
+  type: file
+  path_prefix: example/timezone.csv
+  parser:
+    type: csv
+    columns:
+    - {name: string1, type: string}
+    - {name: string2, type: string}
+filters:
+  - type: timestamp_format
+    default_from_timestamp_format: ["%Y-%m-%d %H:%M:%S.%N %z", "%Y-%m-%d %H:%M:%S %z"]
+    columns:
+      - {name: string1, to_format: "%Y-%m-%d", to_timezone: "Asia/Tokyo"}
+      - {name: string2, to_format: "%Y-%m-%d %H:%M:%S.%N %z", to_timezone: "Asia/Tokyo"}
+out:
+  type: "null"
