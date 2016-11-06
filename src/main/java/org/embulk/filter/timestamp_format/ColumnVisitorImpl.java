@@ -1,5 +1,6 @@
 package org.embulk.filter.timestamp_format;
 
+import io.github.medjed.jsonpathcompiler.expressions.path.PathCompiler;
 import org.embulk.spi.DataException;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
@@ -48,10 +49,9 @@ public class ColumnVisitorImpl
         // columnName => Boolean to avoid unnecessary cast
         for (ColumnConfig columnConfig : task.getColumns()) {
             String name = columnConfig.getName();
-            if (name.startsWith("$.")) {
-                String firstName = name.split("\\.", 3)[1]; // check only top level column name
-                String firstPartName = firstName.split("\\[")[0];
-                shouldCastSet.add(firstPartName);
+            if (PathCompiler.isProbablyJsonPath(name)) {
+                String columnName = JsonPathUtil.getColumnName(name);
+                shouldCastSet.add(columnName);
                 continue;
             }
             shouldCastSet.add(name);

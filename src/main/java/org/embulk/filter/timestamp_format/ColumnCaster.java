@@ -1,5 +1,6 @@
 package org.embulk.filter.timestamp_format;
 
+import io.github.medjed.jsonpathcompiler.expressions.path.PropertyPathToken;
 import org.embulk.filter.timestamp_format.cast.DoubleCast;
 import org.embulk.filter.timestamp_format.cast.LongCast;
 import org.embulk.filter.timestamp_format.cast.StringCast;
@@ -237,7 +238,8 @@ public class ColumnCaster
 
     public void setFromJson(Column outputColumn, Value value)
     {
-        String jsonPath = new StringBuilder("$.").append(outputColumn.getName()).toString();
+        String pathFragment = PropertyPathToken.getPathFragment(outputColumn.getName());
+        String jsonPath = new StringBuilder("$").append(pathFragment).toString();
         pageBuilder.setJson(outputColumn, jsonVisitor.visit(jsonPath, value));
     }
 }
