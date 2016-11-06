@@ -1,3 +1,9 @@
+# 0.2.4 (2016-11-06)
+
+Enhancements:
+
+* Support jsonpath bracket notation
+
 # 0.2.3 (2016-10-25)
 
 Fixes:
