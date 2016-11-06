@@ -2,6 +2,7 @@ package org.embulk.filter.timestamp_format;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import io.github.medjed.jsonpathcompiler.expressions.path.PathCompiler;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
@@ -99,10 +100,9 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         // throw if column does not exist
         for (ColumnConfig columnConfig : columns) {
             String name = columnConfig.getName();
-            if (name.startsWith("$.")) {
-                String firstName = name.split("\\.", 3)[1]; // check only top level column name
-                String firstNameWithoutArray = firstName.split("\\[")[0];
-                inputSchema.lookupColumn(firstNameWithoutArray);
+            if (PathCompiler.isProbablyJsonPath(name)) {
+                String columnName = JsonPathUtil.getColumnName(name);
+                inputSchema.lookupColumn(columnName);
             }
             else {
                 inputSchema.lookupColumn(name);
@@ -119,7 +119,7 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
             if (type instanceof JsonType) {
                 throw new ConfigException(String.format("casting to json is not available: \"%s\"", name));
             }
-            if (name.startsWith("$.") && type instanceof TimestampType) {
+            if (PathCompiler.isProbablyJsonPath(name) && type instanceof TimestampType) {
                 throw new ConfigException(String.format("casting a json path into timestamp is not available: \"%s\"", name));
             }
         }
