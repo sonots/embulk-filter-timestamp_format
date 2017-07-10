@@ -83,7 +83,7 @@ Following operators of JSONPath are not supported:
 
 ## JRuby Timestamp Parser Performance Issue
 
-NEWS: (2017/07/10) embulk 0.8.27 is released with a fast Timestamp jruby parser. This issue should be resolved, so Java Timestamp parser support will be dropped in future releases.
+**NEWS: (2017/07/10) embulk 0.8.27 is released with a fast Timestamp jruby parser. This issue should be resolved, so Java Timestamp parser support will be dropped in future releases.**
 
 Embulk's timestamp parser originally uses jruby implementation, but it is slow.
 To improve performance, this plugin also supports Java's Joda-Time [DateTimeFormat](http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html) format as:
