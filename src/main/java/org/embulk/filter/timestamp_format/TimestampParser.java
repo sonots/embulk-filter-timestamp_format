@@ -48,7 +48,7 @@ public class TimestampParser {
         Optional<List<String>> getFromFormat();
     }
 
-    private final List<JRubyTimeParserHelper> jrubyParserList = new ArrayList<>();
+    private final List<org.embulk.spi.time.TimestampParser> jrubyParserList = new ArrayList<>();
     private final List<DateTimeFormatter> javaParserList = new ArrayList<>();
     private final List<Boolean> handleNanoResolutionList = new ArrayList<>();
     private final DateTimeZone defaultFromTimeZone;
@@ -70,8 +70,8 @@ public class TimestampParser {
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
-                JRubyTimeParserHelper helper = (JRubyTimeParserHelper) helperFactory.newInstance(format, 1970, 1, 1, 0, 0, 0, 0);  // TODO default time zone
-                this.jrubyParserList.add(helper);
+                org.embulk.spi.time.TimestampParser parser = new org.embulk.spi.time.TimestampParser(jruby, format, defaultFromTimeZone);
+                this.jrubyParserList.add(parser);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time
                 if (format.contains("nnnnnnnnn")) {
@@ -106,38 +106,23 @@ public class TimestampParser {
     }
 
     private Timestamp jrubyParse(String text) throws TimestampParseException {
-        long localUsec = -1;
+        Timestamp timestamp = null;
         TimestampParseException exception = null;
 
-        JRubyTimeParserHelper helper = null;
-        for (JRubyTimeParserHelper h : jrubyParserList) {
-            helper = h;
+        org.embulk.spi.time.TimestampParser parser = null;
+        for (org.embulk.spi.time.TimestampParser p : jrubyParserList) {
+            parser = p;
             try {
-                localUsec = helper.strptimeUsec(text); // NOTE: micro second resolution
+                timestamp = parser.parse(text); // NOTE: nano second resolution
                 break;
             } catch (TimestampParseException ex) {
                 exception = ex;
             }
         }
-        if (localUsec == -1) {
+        if (timestamp == null) {
             throw exception;
         }
-        DateTimeZone timeZone = defaultFromTimeZone;
-        String zone = helper.getZone();
-
-        if (zone != null) {
-            // TODO cache parsed zone?
-            timeZone = parseDateTimeZone(zone);
-            if (timeZone == null) {
-                throw new TimestampParseException("Invalid time zone name '" + text + "'");
-            }
-        }
-
-        long localSec = localUsec / 1000000;
-        long usec = localUsec % 1000000;
-        long sec = timeZone.convertLocalToUTC(localSec * 1000, false) / 1000;
-
-        return Timestamp.ofEpochSecond(sec, usec * 1000);
+        return timestamp;
     }
 
     private Timestamp javaParse(String text) throws IllegalArgumentException {
