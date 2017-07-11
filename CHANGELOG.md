@@ -1,3 +1,9 @@
+# 0.2.5 (2017-07-11)
+
+Enhancements:
+
+* Leverage new faster jruby timestamp parser introduced in embulk >= 0.8.27.
+
 # 0.2.4 (2016-11-06)
 
 Enhancements:
