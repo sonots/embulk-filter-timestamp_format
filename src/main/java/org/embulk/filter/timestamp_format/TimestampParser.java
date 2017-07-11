@@ -113,7 +113,9 @@ public class TimestampParser {
         for (org.embulk.spi.time.TimestampParser p : jrubyParserList) {
             parser = p;
             try {
-                timestamp = parser.parse(text); // NOTE: nano second resolution
+                // NOTE: embulk >= 0.8.27 uses new faster jruby timestamp parser, and it supports nano second
+                // NOTE: embulk < 0.8.27 uses old slower jruby timestamp parser, and it supports micro second
+                timestamp = parser.parse(text);
                 break;
             } catch (TimestampParseException ex) {
                 exception = ex;
