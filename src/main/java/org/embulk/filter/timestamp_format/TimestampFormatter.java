@@ -12,7 +12,6 @@ import org.embulk.spi.util.LineEncoder;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.jruby.embed.ScriptingContainer;
 import org.jruby.util.RubyDateFormat;
 
 import java.util.Locale;
@@ -52,16 +51,15 @@ public class TimestampFormatter
 
     public TimestampFormatter(PluginTask task, Optional<? extends TimestampColumnOption> columnOption)
     {
-        this(task.getJRuby(),
-                columnOption.isPresent() ?
-                    columnOption.get().getToFormat().or(task.getDefaultToTimestampFormat())
-                    : task.getDefaultToTimestampFormat(),
-                columnOption.isPresent() ?
-                    columnOption.get().getToTimeZone().or(task.getDefaultToTimeZone())
-                    : task.getDefaultToTimeZone());
+        this(columnOption.isPresent() ?
+                columnOption.get().getToFormat().or(task.getDefaultToTimestampFormat())
+                : task.getDefaultToTimestampFormat(),
+             columnOption.isPresent() ?
+                columnOption.get().getToTimeZone().or(task.getDefaultToTimeZone())
+                : task.getDefaultToTimeZone());
     }
 
-    public TimestampFormatter(ScriptingContainer jruby, String format, DateTimeZone toTimeZone)
+    public TimestampFormatter(String format, DateTimeZone toTimeZone)
     {
         this.toTimeZone = toTimeZone;
         if (format.contains("%")) {

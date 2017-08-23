@@ -24,7 +24,6 @@ import org.embulk.spi.type.BooleanType;
 import org.embulk.spi.type.JsonType;
 import org.embulk.spi.type.TimestampType;
 import org.embulk.spi.type.Type;
-import org.jruby.embed.ScriptingContainer;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -77,9 +76,6 @@ public class TimestampFormatFilterPlugin implements FilterPlugin
         @Config("default_to_timestamp_unit")
         @ConfigDefault("\"second\"")
         TimestampUnit getDefaultToTimestampUnit();
-
-        @ConfigInject
-        ScriptingContainer getJRuby();
     }
 
     @Override

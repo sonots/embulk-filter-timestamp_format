@@ -4,7 +4,6 @@ import org.embulk.EmbulkTestRuntime;
 
 import org.embulk.spi.time.Timestamp;
 import org.joda.time.DateTimeZone;
-import org.jruby.embed.ScriptingContainer;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,14 +18,12 @@ public class TestTimestampParser
 {
     @Rule
     public EmbulkTestRuntime runtime = new EmbulkTestRuntime();
-    public ScriptingContainer jruby;
     public DateTimeZone zone;
     public Timestamp expected;
 
     @Before
     public void createResource()
     {
-        jruby = new ScriptingContainer();
         zone = DateTimeZone.UTC;
         expected = Timestamp.ofEpochSecond(1463065359, 123456789);
     }
@@ -36,7 +33,7 @@ public class TestTimestampParser
     {
         String rubyFormat = "%Y-%m-%d %H:%M:%S.%N %:z";
 
-        TimestampParser parser = new TimestampParser(jruby, Arrays.asList(rubyFormat), zone);
+        TimestampParser parser = new TimestampParser(Arrays.asList(rubyFormat), zone);
         try {
             Timestamp actual = parser.parse("2016-05-13 00:02:39.123456789 +09:00");
             // embulk >= 0.8.27 uses new faster jruby Timestamp parser, and it support nano second
@@ -53,7 +50,7 @@ public class TestTimestampParser
     {
         String javaFormat = "yyyy-MM-dd HH:mm:ss.nnnnnnnnn Z";
 
-        TimestampParser parser = new TimestampParser(jruby, Arrays.asList(javaFormat), zone);
+        TimestampParser parser = new TimestampParser(Arrays.asList(javaFormat), zone);
         try {
             Timestamp actual = parser.parse("2016-05-13 00:02:39.123456789 +09:00");
             assertEquals(expected, actual);

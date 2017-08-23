@@ -1,10 +1,12 @@
-2016-11-06 14:37:03.501 +0900: Embulk v0.8.6
-2016-11-06 14:37:04.349 +0900 [INFO] (0001:preview): Loaded plugin embulk/filter/timestamp_format from a load path
-2016-11-06 14:37:04.365 +0900 [INFO] (0001:preview): Listing local files at directory 'example' filtering filename by prefix 'nested.jsonl'
-2016-11-06 14:37:04.371 +0900 [INFO] (0001:preview): Loading files [example/nested.jsonl]
+2017-08-23 17:24:55.119 +0900: Embulk v0.8.30
+2017-08-23 17:24:59.552 +0900 [INFO] (0001:preview): Loaded plugin embulk/filter/timestamp_format from a load path
+2017-08-23 17:24:59.617 +0900 [INFO] (0001:preview): Listing local files at directory 'example' filtering filename by prefix 'nested.jsonl'
+2017-08-23 17:24:59.618 +0900 [INFO] (0001:preview): "follow_symlinks" is set false. Note that symbolic links to directories are skipped.
+2017-08-23 17:24:59.625 +0900 [INFO] (0001:preview): Loading files [example/nested.jsonl]
+2017-08-23 17:24:59.636 +0900 [INFO] (0001:preview): Try to read 32,768 bytes from input source
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                                                                                                               record:json |
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
-|   {"timestamp":1436713200000,"nested":{"nested":[{"timestamp":"2015-07-13 00:00:00.000000000"}]},"ignore_nested":{"timestamp":"2015-07-12 15:00:00 UTC"}} |
-| {"timestamp":1436713200100,"nested":{"nested":[{"timestamp":"2015-07-13 00:00:00.100000000"}]},"ignore_nested":{"timestamp":"2015-07-12 15:00:00.1 UTC"}} |
+|   {"ignore_nested":{"timestamp":"2015-07-12 15:00:00 UTC"},"nested":{"nested":[{"timestamp":"2015-07-13 00:00:00.000000000"}]},"timestamp":1436713200000} |
+| {"ignore_nested":{"timestamp":"2015-07-12 15:00:00.1 UTC"},"nested":{"nested":[{"timestamp":"2015-07-13 00:00:00.100000000"}]},"timestamp":1436713200100} |
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
