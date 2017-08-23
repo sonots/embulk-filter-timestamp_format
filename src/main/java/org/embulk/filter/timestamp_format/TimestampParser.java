@@ -17,7 +17,6 @@ import org.embulk.spi.time.TimestampParseException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
-import org.jruby.embed.ScriptingContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,22 +54,19 @@ public class TimestampParser {
     private final Pattern nanoSecPattern = Pattern.compile("\\.(\\d+)");
 
     TimestampParser(PluginTask task) {
-        this(task.getJRuby(), task.getDefaultFromTimestampFormat(), task.getDefaultFromTimeZone());
+        this(task.getDefaultFromTimestampFormat(), task.getDefaultFromTimeZone());
     }
 
     public TimestampParser(PluginTask task, TimestampColumnOption columnOption) {
-        this(task.getJRuby(),
-                columnOption.getFromFormat().or(task.getDefaultFromTimestampFormat()),
-                columnOption.getFromTimeZone().or(task.getDefaultFromTimeZone()));
+        this(columnOption.getFromFormat().or(task.getDefaultFromTimestampFormat()),
+             columnOption.getFromTimeZone().or(task.getDefaultFromTimeZone()));
     }
 
-    public TimestampParser(ScriptingContainer jruby, List<String> formatList, DateTimeZone defaultFromTimeZone) {
-        JRubyTimeParserHelperFactory helperFactory = (JRubyTimeParserHelperFactory) jruby.runScriptlet("Embulk::Java::TimeParserHelper::Factory.new");
-
+    public TimestampParser(List<String> formatList, DateTimeZone defaultFromTimeZone) {
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
-                org.embulk.spi.time.TimestampParser parser = new org.embulk.spi.time.TimestampParser(jruby, format, defaultFromTimeZone);
+                org.embulk.spi.time.TimestampParser parser = new org.embulk.spi.time.TimestampParser(format, defaultFromTimeZone);
                 this.jrubyParserList.add(parser);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time

@@ -88,7 +88,7 @@ public class ColumnCaster
                 }
             }
         }
-        return new TimestampParser(task.getJRuby(), newFormatList, timezone);
+        return new TimestampParser(newFormatList, timezone);
     }
 
     private void buildTimestampFormatterMap()
@@ -106,7 +106,7 @@ public class ColumnCaster
     {
         String format = columnConfig.getToFormat().or(task.getDefaultToTimestampFormat());
         DateTimeZone timezone = columnConfig.getToTimeZone().or(task.getDefaultToTimeZone());
-        return new TimestampFormatter(task.getJRuby(), format, timezone);
+        return new TimestampFormatter(format, timezone);
     }
 
     private void buildFromTimestampUnitMap()

@@ -1,7 +1,9 @@
-2016-11-06 13:32:15.784 +0900: Embulk v0.8.6
-2016-11-06 13:32:16.556 +0900 [INFO] (0001:preview): Loaded plugin embulk/filter/timestamp_format from a load path
-2016-11-06 13:32:16.571 +0900 [INFO] (0001:preview): Listing local files at directory 'example' filtering filename by prefix 'from_timestamp.csv'
-2016-11-06 13:32:16.576 +0900 [INFO] (0001:preview): Loading files [example/from_timestamp.csv]
+2017-08-23 17:27:14.804 +0900: Embulk v0.8.30
+2017-08-23 17:27:19.493 +0900 [INFO] (0001:preview): Loaded plugin embulk/filter/timestamp_format from a load path
+2017-08-23 17:27:19.591 +0900 [INFO] (0001:preview): Listing local files at directory 'example' filtering filename by prefix 'from_timestamp.csv'
+2017-08-23 17:27:19.592 +0900 [INFO] (0001:preview): "follow_symlinks" is set false. Note that symbolic links to directories are skipped.
+2017-08-23 17:27:19.600 +0900 [INFO] (0001:preview): Loading files [example/from_timestamp.csv]
+2017-08-23 17:27:19.623 +0900 [INFO] (0001:preview): Try to read 32,768 bytes from input source
 +-------------------------------+-------------------+-------------------+-----------------------------+
 |             timestamp1:string |   timestamp2:long | timestamp3:double |        timestamp4:timestamp |
 +-------------------------------+-------------------+-------------------+-----------------------------+
