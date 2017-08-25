@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.joda.time.format.DateTimeFormat;
+import org.jruby.embed.ScriptingContainer;
 
 public class TimestampParser {
     public interface Task {
@@ -66,7 +67,7 @@ public class TimestampParser {
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
-                org.embulk.spi.time.TimestampParser parser = new org.embulk.spi.time.TimestampParser(format, defaultFromTimeZone);
+                org.embulk.spi.time.TimestampParser parser = getTimestampParser(format, defaultFromTimeZone);
                 this.jrubyParserList.add(parser);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time
@@ -167,5 +168,84 @@ public class TimestampParser {
             nsec = Long.parseLong(nanoStr) * (long) Math.pow(10, 9 - nanoStr.length());
         }
         return nsec;
+    }
+
+    private class TimestampParserTaskImpl implements org.embulk.spi.time.TimestampParser.Task
+    {
+        private final DateTimeZone defaultTimeZone;
+        private final String defaultTimestampFormat;
+        private final String defaultDate;
+        public TimestampParserTaskImpl(
+                DateTimeZone defaultTimeZone,
+                String defaultTimestampFormat,
+                String defaultDate)
+        {
+            this.defaultTimeZone = defaultTimeZone;
+            this.defaultTimestampFormat = defaultTimestampFormat;
+            this.defaultDate = defaultDate;
+        }
+        @Override
+        public DateTimeZone getDefaultTimeZone()
+        {
+            return this.defaultTimeZone;
+        }
+        @Override
+        public String getDefaultTimestampFormat()
+        {
+            return this.defaultTimestampFormat;
+        }
+        @Override
+        public String getDefaultDate()
+        {
+            return this.defaultDate;
+        }
+        @Override
+        public ScriptingContainer getJRuby()
+        {
+            return null;
+        }
+    }
+
+    private class TimestampParserColumnOptionImpl implements org.embulk.spi.time.TimestampParser.TimestampColumnOption
+    {
+        private final Optional<DateTimeZone> timeZone;
+        private final Optional<String> format;
+        private final Optional<String> date;
+        public TimestampParserColumnOptionImpl(
+                Optional<DateTimeZone> timeZone,
+                Optional<String> format,
+                Optional<String> date)
+        {
+            this.timeZone = timeZone;
+            this.format = format;
+            this.date = date;
+        }
+        @Override
+        public Optional<DateTimeZone> getTimeZone()
+        {
+            return this.timeZone;
+        }
+        @Override
+        public Optional<String> getFormat()
+        {
+            return this.format;
+        }
+        @Override
+        public Optional<String> getDate()
+        {
+            return this.date;
+        }
+    }
+
+    private org.embulk.spi.time.TimestampParser getTimestampParser(String format, DateTimeZone timezone)
+    {
+        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
+        //
+        //     return new org.embulk.spi.time.TimestampParser(format, timezone);
+        String date = "1970-01-01";
+        TimestampParserTaskImpl task = new TimestampParserTaskImpl(timezone, format, date);
+        TimestampParserColumnOptionImpl columnOption = new TimestampParserColumnOptionImpl(
+                Optional.of(timezone), Optional.of(format), Optional.of(date));
+        return new org.embulk.spi.time.TimestampParser(task, columnOption);
     }
 }
