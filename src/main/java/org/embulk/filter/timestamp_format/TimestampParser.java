@@ -3,10 +3,12 @@ package org.embulk.filter.timestamp_format;
 import com.google.common.base.Optional;
 
 import org.embulk.config.Config;
+import org.embulk.config.ConfigSource;
 import org.embulk.config.ConfigDefault;
 
 import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
 
+import org.embulk.spi.Exec;
 import org.embulk.spi.time.JRubyTimeParserHelper;
 import org.embulk.spi.time.JRubyTimeParserHelperFactory;
 import org.embulk.spi.time.Timestamp;
@@ -25,7 +27,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.joda.time.format.DateTimeFormat;
-import org.jruby.embed.ScriptingContainer;
 
 public class TimestampParser {
     public interface Task {
@@ -67,7 +68,7 @@ public class TimestampParser {
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
-                org.embulk.spi.time.TimestampParser parser = getTimestampParser(format, defaultFromTimeZone);
+                org.embulk.spi.time.TimestampParser parser = createTimestampParser(format, defaultFromTimeZone);
                 this.jrubyParserList.add(parser);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time
@@ -170,82 +171,27 @@ public class TimestampParser {
         return nsec;
     }
 
-    private class TimestampParserTaskImpl implements org.embulk.spi.time.TimestampParser.Task
+    private interface TimestampParserTaskIntl extends org.embulk.config.Task, org.embulk.spi.time.TimestampParser.Task {}
+    private interface TimestampParserColumnOptionIntl extends org.embulk.config.Task, org.embulk.spi.time.TimestampParser.TimestampColumnOption {}
+
+    // ToDo: Replace with `new TimestampParser(format, timezone)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone)
     {
-        private final DateTimeZone defaultTimeZone;
-        private final String defaultTimestampFormat;
-        private final String defaultDate;
-        public TimestampParserTaskImpl(
-                DateTimeZone defaultTimeZone,
-                String defaultTimestampFormat,
-                String defaultDate)
-        {
-            this.defaultTimeZone = defaultTimeZone;
-            this.defaultTimestampFormat = defaultTimestampFormat;
-            this.defaultDate = defaultDate;
-        }
-        @Override
-        public DateTimeZone getDefaultTimeZone()
-        {
-            return this.defaultTimeZone;
-        }
-        @Override
-        public String getDefaultTimestampFormat()
-        {
-            return this.defaultTimestampFormat;
-        }
-        @Override
-        public String getDefaultDate()
-        {
-            return this.defaultDate;
-        }
-        @Override
-        public ScriptingContainer getJRuby()
-        {
-            return null;
-        }
+        return createTimestampParser(format, timezone, "1970-01-01");
     }
 
-    private class TimestampParserColumnOptionImpl implements org.embulk.spi.time.TimestampParser.TimestampColumnOption
+    // ToDo: Replace with `new TimestampParser(format, timezone, date)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone, String date)
     {
-        private final Optional<DateTimeZone> timeZone;
-        private final Optional<String> format;
-        private final Optional<String> date;
-        public TimestampParserColumnOptionImpl(
-                Optional<DateTimeZone> timeZone,
-                Optional<String> format,
-                Optional<String> date)
-        {
-            this.timeZone = timeZone;
-            this.format = format;
-            this.date = date;
-        }
-        @Override
-        public Optional<DateTimeZone> getTimeZone()
-        {
-            return this.timeZone;
-        }
-        @Override
-        public Optional<String> getFormat()
-        {
-            return this.format;
-        }
-        @Override
-        public Optional<String> getDate()
-        {
-            return this.date;
-        }
-    }
-
-    private org.embulk.spi.time.TimestampParser getTimestampParser(String format, DateTimeZone timezone)
-    {
-        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
-        //
-        //     return new org.embulk.spi.time.TimestampParser(format, timezone);
-        String date = "1970-01-01";
-        TimestampParserTaskImpl task = new TimestampParserTaskImpl(timezone, format, date);
-        TimestampParserColumnOptionImpl columnOption = new TimestampParserColumnOptionImpl(
-                Optional.of(timezone), Optional.of(format), Optional.of(date));
+        ConfigSource taskConfig = Exec.newConfigSource();
+        TimestampParserTaskIntl task = taskConfig.loadConfig(TimestampParserTaskIntl.class);
+        ConfigSource columnOptionConfig = Exec.newConfigSource();
+        columnOptionConfig.set("format", Optional.of(format));
+        columnOptionConfig.set("timezone", Optional.of(timezone));
+        columnOptionConfig.set("date", Optional.of(date));
+        TimestampParserColumnOptionIntl columnOption = columnOptionConfig.loadConfig(TimestampParserColumnOptionIntl.class);
         return new org.embulk.spi.time.TimestampParser(task, columnOption);
     }
 }
