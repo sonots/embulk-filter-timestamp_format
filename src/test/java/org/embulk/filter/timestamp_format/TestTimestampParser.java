@@ -16,8 +16,6 @@ import static org.junit.Assert.fail;
 
 public class TestTimestampParser
 {
-    @Rule
-    public EmbulkTestRuntime runtime = new EmbulkTestRuntime();
     public DateTimeZone zone;
     public Timestamp expected;
 

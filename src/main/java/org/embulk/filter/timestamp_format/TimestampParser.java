@@ -67,7 +67,7 @@ public class TimestampParser {
         // TODO get default current time from ExecTask.getExecTimestamp
         for (String format : formatList) {
             if (format.contains("%")) {
-                org.embulk.spi.time.TimestampParser parser = getTimestampParser(format, defaultFromTimeZone);
+                org.embulk.spi.time.TimestampParser parser = createTimestampParser(format, defaultFromTimeZone);
                 this.jrubyParserList.add(parser);
             } else {
                 // special treatment for nano resolution. n is not originally supported by Joda-Time
@@ -237,12 +237,17 @@ public class TimestampParser {
         }
     }
 
-    private org.embulk.spi.time.TimestampParser getTimestampParser(String format, DateTimeZone timezone)
+    // ToDo: Replace with `new TimestampParser(format, timezone)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone)
     {
-        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
-        //
-        //     return new org.embulk.spi.time.TimestampParser(format, timezone);
-        String date = "1970-01-01";
+        return createTimestampParser(format, timezone, "1970-01-01");
+    }
+
+    // ToDo: Replace with `new TimestampParser(format, timezone, date)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone, String date)
+    {
         TimestampParserTaskImpl task = new TimestampParserTaskImpl(timezone, format, date);
         TimestampParserColumnOptionImpl columnOption = new TimestampParserColumnOptionImpl(
                 Optional.of(timezone), Optional.of(format), Optional.of(date));
