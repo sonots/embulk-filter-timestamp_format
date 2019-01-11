@@ -7,11 +7,7 @@ import org.embulk.config.ConfigDefault;
 
 import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
 
-import org.embulk.spi.time.JRubyTimeParserHelper;
-import org.embulk.spi.time.JRubyTimeParserHelperFactory;
 import org.embulk.spi.time.Timestamp;
-
-import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
 
 import org.embulk.spi.time.TimestampParseException;
 import org.joda.time.DateTime;
@@ -25,7 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.joda.time.format.DateTimeFormat;
-import org.jruby.embed.ScriptingContainer;
 
 public class TimestampParser {
     public interface Task {
@@ -185,9 +180,9 @@ public class TimestampParser {
             this.defaultDate = defaultDate;
         }
         @Override
-        public DateTimeZone getDefaultTimeZone()
+        public String getDefaultTimeZoneId()
         {
-            return this.defaultTimeZone;
+            return this.defaultTimeZone.getID();
         }
         @Override
         public String getDefaultTimestampFormat()
@@ -198,11 +193,6 @@ public class TimestampParser {
         public String getDefaultDate()
         {
             return this.defaultDate;
-        }
-        @Override
-        public ScriptingContainer getJRuby()
-        {
-            return null;
         }
     }
 
@@ -221,9 +211,14 @@ public class TimestampParser {
             this.date = date;
         }
         @Override
-        public Optional<DateTimeZone> getTimeZone()
+        public Optional<String> getTimeZoneId()
         {
-            return this.timeZone;
+            if (this.timeZone.isPresent()) {
+                return Optional.of(this.timeZone.get().getID());
+            }
+            else {
+                return Optional.absent();
+            }
         }
         @Override
         public Optional<String> getFormat()
@@ -237,20 +232,16 @@ public class TimestampParser {
         }
     }
 
-    // ToDo: Replace with `new TimestampParser(format, timezone)`
-    // after deciding to drop supporting embulk < 0.8.29.
     private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone)
     {
         return createTimestampParser(format, timezone, "1970-01-01");
     }
 
-    // ToDo: Replace with `new TimestampParser(format, timezone, date)`
-    // after deciding to drop supporting embulk < 0.8.29.
     private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone, String date)
     {
         TimestampParserTaskImpl task = new TimestampParserTaskImpl(timezone, format, date);
         TimestampParserColumnOptionImpl columnOption = new TimestampParserColumnOptionImpl(
                 Optional.of(timezone), Optional.of(format), Optional.of(date));
-        return new org.embulk.spi.time.TimestampParser(task, columnOption);
+        return org.embulk.spi.time.TimestampParser.of(task, columnOption);
     }
 }
