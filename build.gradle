@@ -23,7 +23,7 @@ dependencies {
     compile  "io.github.medjed:JsonPathCompiler:0.1.+"
 
     testCompile "junit:junit:4.+"
-    testCompile "org.embulk:embulk-core:0.9.12+:tests"
+    testCompile "org.embulk:embulk-core:0.9.12:tests"
 }
 
 checkstyle {
@@ -79,3 +79,4 @@ end
     }
 }
 clean { delete "${project.name}.gemspec" }
+
