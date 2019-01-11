@@ -7,11 +7,7 @@ import org.embulk.config.ConfigDefault;
 
 import org.embulk.filter.timestamp_format.TimestampFormatFilterPlugin.PluginTask;
 
-import org.embulk.spi.time.JRubyTimeParserHelper;
-import org.embulk.spi.time.JRubyTimeParserHelperFactory;
 import org.embulk.spi.time.Timestamp;
-
-import static org.embulk.spi.time.TimestampFormat.parseDateTimeZone;
 
 import org.embulk.spi.time.TimestampParseException;
 import org.joda.time.DateTime;
@@ -199,7 +195,6 @@ public class TimestampParser {
         {
             return this.defaultDate;
         }
-        @Override
         public ScriptingContainer getJRuby()
         {
             return null;
