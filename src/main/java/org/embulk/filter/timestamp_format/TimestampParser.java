@@ -186,6 +186,11 @@ public class TimestampParser {
             return this.defaultTimeZone;
         }
         @Override
+        public String getDefaultTimeZoneId()
+        {
+            return this.defaultTimeZone.getID();
+        }
+        @Override
         public String getDefaultTimestampFormat()
         {
             return this.defaultTimestampFormat;
@@ -221,6 +226,16 @@ public class TimestampParser {
             return this.timeZone;
         }
         @Override
+        public Optional<String> getTimeZoneId()
+        {
+            if (this.timeZone.isPresent()) {
+                return Optional.of(this.timeZone.get().getID());
+            }
+            else {
+                return Optional.absent();
+            }
+        }
+        @Override
         public Optional<String> getFormat()
         {
             return this.format;
@@ -232,14 +247,14 @@ public class TimestampParser {
         }
     }
 
-    // ToDo: Replace with `new TimestampParser(format, timezone)`
+    // ToDo: Replace with `TimestampParser.of(Task, TimestampColumnOption)`
     // after deciding to drop supporting embulk < 0.8.29.
     private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone)
     {
         return createTimestampParser(format, timezone, "1970-01-01");
     }
 
-    // ToDo: Replace with `new TimestampParser(format, timezone, date)`
+    // ToDo: Replace with `TimestampParser.of(Task, TimestampColumnOption)`
     // after deciding to drop supporting embulk < 0.8.29.
     private org.embulk.spi.time.TimestampParser createTimestampParser(String format, DateTimeZone timezone, String date)
     {
