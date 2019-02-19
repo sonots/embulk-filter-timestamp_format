@@ -1,3 +1,9 @@
+# 0.3.3 (2019-02-19)
+
+Fixes:
+
+* Avoid symlinks to support installing on Windows (thanks to hiroyuki-sato)
+
 # 0.3.2 (2019-01-11)
 
 Enhancements:
