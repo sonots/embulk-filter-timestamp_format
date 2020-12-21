@@ -26,7 +26,7 @@ A filter plugin for Embulk to change timestamp format
 
 ## Example
 
-Say example.jsonl is as follows (this is a typical format which Exporting BigQuery table outputs):
+Say example.jsonl is as follows (this is a typical format on exporting a BigQuery table):
 
 ```
 {"timestamp":"2015-07-12 15:00:00 UTC","nested":{"timestamp":"2015-07-12 15:00:00 UTC"}}
