@@ -1,5 +1,4 @@
 plugins {
-    id "com.jfrog.bintray" version "1.1"
     id "java"
     id "checkstyle"
     id "maven-publish"
@@ -20,7 +19,7 @@ targetCompatibility = 1.8
 
 dependencies {
     compileOnly  "org.embulk:embulk-core:0.9.23"
-    compile("io.github.medjed:JsonPathCompiler:0.1.+") {
+    compile("io.github.medjed:JsonPathCompiler:0.1.2") {
         exclude group: "org.apache.commons", module: "commons-lang3"
         exclude group: "org.slf4j", module: "slf4j-api"
     }
