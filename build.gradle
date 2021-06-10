@@ -11,7 +11,7 @@ repositories {
 }
 
 group = "io.github.sonots"
-version = "0.3.3"
+version = "0.4.0"
 description = "A filter plugin for Embulk to change timestamp format."
 
 sourceCompatibility = 1.8

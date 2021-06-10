@@ -1,3 +1,9 @@
+# 0.4.0 (2021-06-10)
+
+Enhancements:
+
+* Build it with the "org.embulk.embulk-plugins" Gradle plugin
+[
 # 0.3.3 (2019-02-19)
 
 Fixes:
